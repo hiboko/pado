@@ -1,0 +1,274 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
+<meta name="keywords" content="ぱど基幹サブシステム,分析,受注履歴検索" />
+<meta name="description" content="ぱど基幹サブシステム 受注履歴検索出力" />
+<link rel="stylesheet" href="/html/css/common.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/style.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/jquery-ui-1.10.0.custom.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/ui.jqgrid.css" type="text/css" />
+<script type="text/javascript" src="/html/js/jquery.js"></script>
+<script type="text/javascript" src="/html/js/jquery-ui-1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="/html/js/jquery.jqGrid.min.js"></script>
+<script type="text/javascript" src="/html/js/i18n/grid.locale-ja.js"></script>
+<script type="text/javascript" src="/html/js/i18n/jquery.ui.datepicker-ja.js"></script>
+<script type="text/javascript" src="/html/js/common.js"></script>
+<script type="text/javascript" src="/html/js/blockUI.js"></script>
+
+<script type="text/javascript">
+
+$(function()
+{
+	$("#txtDStartDate").datepicker({
+		 inline: true,
+		 showOn: 'button',
+		 dateFormat: "yy/mm/dd",
+		 buttonImage: "/html/css/images/calendar.gif",
+		 buttonImageOnly: true
+	});
+
+	$("#txtDEndDate").datepicker({
+		 inline: true,
+		 showOn: 'button',
+		 dateFormat: "yy/mm/dd",
+		 buttonImage: "/html/css/images/calendar.gif",
+		 buttonImageOnly: true
+	});
+
+	var grid = JSON.stringify(<?= $this->arrdata ?>);
+	document.frmMain.grid.value = grid;
+});
+
+function btnClient_onclick($type)
+{
+	var child = "<?= $this->cdialog_client_url ?>type/" + $type + "/?token=<?= $this->Token ?>"; 
+	window.open(child,"clientchild","width=1240,height=630,scrollbars=no");
+}
+
+function btnEmployee_onclick($type)
+{
+	var child = "<?= $this->cdialog_employee_url ?>type/" + $type + "/?token=<?= $this->Token ?>"; 
+	window.open(child,"employeechild","width=420,height=620,scrollbars=no");
+}
+
+function btnCode_onclick($type)
+{
+	var dcd = document.frmMain.bclasscd.value;
+	var ccd = document.frmMain.mclasscd.value;
+
+	var child = "<?= $this->cdialog_code_url ?>type/" + $type + "/?dcd=" + dcd + "&ccd=" + ccd + "&token=<?= $this->Token ?>"; 
+	preview = window.open(child,"codechild","width=350,height=540,scrollbars=no");
+	window.preview.focus();
+}
+
+</script>
+
+<script type="text/javascript">
+
+jQuery(document).ready(function()
+{
+	var arrdata = <?= $this->arrdata ?>;
+
+	$('#list').jqGrid({
+		data     : arrdata,
+		datatype : 'local',
+		colNames : [ '契約主','掲載版/掲載エリア','掲載日/掲載号','商品名/サイズ','受注番号','売価/制作費','小計/消費税','総額/粗利','受注担当者','入金予定日'],
+		colModel : [ 
+			{ name : 'contract' , index : 'contract', width:60, align:'center',
+					formatter:function breakLine(cellvalue, options, rowObject)
+					{ return cellvalue.replace(/;/g,'<br />');}
+			},
+			{ name : 'report' , index : 'report', width:40, align:'center',
+					formatter:function breakLine(cellvalue, options, rowObject)
+					{ return cellvalue.replace(/;/g,'<br />');}
+			},
+			{ name : 'reportno' , index : 'reportno', width:40, align:'center',
+					formatter:function breakLine(cellvalue, options, rowObject)
+					{ return cellvalue.replace(/;/g,'<br />');}
+			},
+			{ name : 'product' , index : 'product', width:50, align:'center',
+					formatter:function breakLine(cellvalue, options, rowObject)
+					{ return cellvalue.replace(/;/g,'<br />');}
+			},
+			{ name : 'seq' , index : 'seq', width:40, align:'center'},
+			{ name : 'rprice' , index : 'rprice', width:30, align:'right', 
+					formatter:function breakLine(cellvalue, options, rowObject)
+					{ return cellvalue.replace(/;/g,'<br />');}
+			},
+			{ name : 'pprice' , index : 'pprice', width:30, align:'right',
+					formatter:function breakLine(cellvalue, options, rowObject)
+					{ return cellvalue.replace(/;/g,'<br />');}
+			},
+			{ name : 'price' , index : 'price', width:30, align:'right',
+					formatter:function breakLine(cellvalue, options, rowObject)
+					{ return cellvalue.replace(/;/g,'<br />');}
+			},
+			{ name : 'charge' , index : 'charge', width:30, align:'center',
+					formatter:function breakLine(cellvalue, options, rowObject)
+					{ return cellvalue.replace(/;/g,'<br />');}
+			},
+			{ name : 'receivedate' , index : 'receivedate', width:30, align:'center'}
+		],
+		caption     : '受注履歴一覧',
+		rowTotal    : 1000,
+		gridview    : true,
+		pager       : $("#pager"),
+		rowNum      : 10,
+		rowList     : [10,20,30],
+		sortname    : 'receivedate,report',
+		sortorder   : "asc",
+		height      : 365,
+		width       : 1140,
+		viewrecords : true
+	});
+});
+</script>
+
+<title>ぱど基幹サブシステム 受注履歴検索</title>
+
+</head>
+<body>
+
+ 
+<div id="domMessage" style="display:none;"> 
+    <h1>We are processing your request.  Please be patient.</h1> 
+</div> 
+
+
+<!-- #top start -->
+<div id="top">
+
+	<!-- #header include -->
+	<? @include("html/include/header.inc"); ?>
+
+	<!-- #header menu include -->
+	<? @include("html/include/headermenu.php"); ?>
+
+	<!-- #contents start -->
+	<div id="contents">
+
+		<!-- #main start -->
+		<div id="main">
+			<h2>受注履歴検索</h2>
+			<p>受注履歴を検索する</p>
+			<p><span class="required"><?= $this->ErrMsg ?></span></p>
+
+			<!-- #formArea start -->
+			<form name="frmMain" action="receivehistory" method="post">
+				<input type="hidden" name="token" value="<?= $this->Token ?>">
+				<input type="hidden" name="grid">
+
+				<div id="formArea">
+					<table>
+						<tr>
+							<th style="width:100px;">契約主</th>
+							<td>
+								<input type="text" name="contractcd" id="txtContractCd" value="<?= $this->ContractCd ?>" onChange="this.form.submit();" maxlength="8" style="width:70px;" />
+								<input type="button" id="btnContract" value="参照" onclick="btnClient_onclick(<?= $this->code_contract ?>)" />
+								<input type="text" class="readonly" readonly name="contractnm" id="txtContractName" value="<?= $this->ContractName ?>" maxlength="100" style="width:310px;" />
+							</td>
+							<th style="width:100px;">請求先</th>
+								<td>
+								<input type="text" name="claimantcd" id="txtClaimantCd" value="<?= $this->ClaimantCd ?>" onChange="this.form.submit();" maxlength="8" style="width:70px;" />
+								<input type="button" id="btnClaimant" value="参照" onclick="btnClient_onclick(<?= $this->code_claimant ?>)" />
+								<input type="text" class="readonly" readonly name="claimantnm" id="txtClaimantName" value="<?= $this->ClaimantName ?>" maxlength="100" style="width:310px;" />
+							</td>
+						</tr>
+						<tr>
+							<th>広告主</th>
+							<td>
+								<input type="text" name="advertisercd" id="txtAdvertiserCd" value="<?= $this->AdvertiserCd ?>" onChange="this.form.submit();" maxlength="8" style="width:70px;" />
+								<input type="button" id="btnAdvertiser" value="参照" onclick="btnClient_onclick(<?= $this->code_advertiser ?>)" />
+								<input type="text" class="readonly" readonly name="advertisernm" id="txtAdvertiserName" value="<?= $this->AdvertiserName ?>" maxlength="100" style="width:310px;" />
+							</td>
+						</tr>
+						<tr>
+							<th>自社取引担当者</th>
+							<td>
+								<input type="text" name="connectcd" id="txtConnectCd" value="<?= $this->ConnectCd ?>" onChange="this.form.submit();" maxlength="6" style="width:70px;" />
+								<input type="button" id="btnConnect" value="参照" onclick="btnEmployee_onclick(<?= $this->code_connect_employee ?>)" />
+								<input type="text" class="readonly" readonly name="connectnm" id="txtConnectName" value="<?= $this->ConnectName ?>" maxlength="100" style="width:310px;" />
+							</td>
+							<th>自社請求担当者</th>
+								<td>
+								<input type="text" name="claimcd" id="txtClaimCd" value="<?= $this->ClaimCd ?>" onChange="this.form.submit();" maxlength="6" style="width:70px;" />
+								<input type="button" id="btnClaim" value="参照" onclick="btnEmployee_onclick(<?= $this->code_claim_employee ?>)" />
+								<input type="text" class="readonly" readonly name="claimnm" id="txtClaimName" value="<?= $this->ClaimName ?>" maxlength="100" style="width:310px;" />
+							</td>
+						</tr>
+						<tr>
+							<th>掲載版</th>
+							<td>
+								<input type="text" name="reportcd" id="txtReportCd" value="<?= $this->ReportCd ?>" onChange="this.form.submit();" maxlength="3" style="width:70px;" />
+								<input type="button" id="btnReport" value="参照" onclick="btnCode_onclick(<?= $this->code_keisaihan ?>)" />
+								<input type="text" class="readonly" readonly name="reportnm" id="txtReportName" value="<?= $this->ReportName ?>" maxlength="100" style="width:310px;" />
+							</td>
+							<th>納期<span class="required">(必須)</span></th>
+								<td>
+								<input type="text" name="dstartdate" id="txtDStartDate" value="<?= $this->DStartDate ?>" onChange="setFormatDate(this);" maxlength="10" style="width:80px;" /> ～
+								<input type="text" name="denddate" id="txtDEndDate" value="<?= $this->DEndDate ?>" onChange="setFormatDate(this);" maxlength="10" style="width:80px;" />
+							</td>
+						</tr>
+						<tr>
+							<th>大分類</th>
+							<td>
+								<input type="text" name="bclasscd" id="txtBClassCd" value="<?= $this->BClassCd ?>" onChange="this.form.submit();" maxlength="2" style="width:70px;" />
+								<input type="button" id="btnBClass" value="参照" onclick="btnCode_onclick(<?= $this->code_daibunrui ?>)"  >
+								<input type="text" class="readonly" readonly name="bclassnm" id="txtBClassName" value="<?= $this->BClassName ?>" maxlength="100" style="width:310px;" />
+							</td>
+							<th>中分類</th>
+							<td>
+								<input type="text" name="mclasscd" id="txtMClassCd" value="<?= $this->MClassCd ?>" onChange="this.form.submit();" maxlength="2" style="width:70px;" />
+								<input type="button" id="btnMClass" value="参照" onclick="btnCode_onclick(<?= $this->code_chubunrui ?>)" />
+								<input type="text" class="readonly" readonly name="mclassnm" id="txtMClassName" value="<?= $this->MClassName ?>" maxlength="100" style="width:310px;" />
+							</td>
+						</tr>
+							<th>種別</th>
+							<td>
+								<input type="text" name="kindcd" id="txtKindCd" value="<?= $this->KindCd ?>" onChange="this.form.submit();" maxlength="2" style="width:70px;" />
+								<input type="button" id="btnKind" value="参照" onclick="btnCode_onclick(<?= $this->code_shubetu ?>)" />
+								<input type="text" class="readonly" readonly name="kindnm" id="txtKindName" value="<?= $this->KindName ?>" maxlength="100" style="width:310px;" />
+							</td>
+							<th>広告名</th>
+								<td>
+								<input type="text" name="advertisingnm" id="txtAdvertisingName" value="<?= $this->AdvertisingName ?>" maxlength="100" style="width:440px;" />
+							</td>
+						</tr>
+					</table>
+					<div id="formBtnArea" class="FormBtnArea">
+						<table width="1150">
+							<tr>
+								<td>
+									<input class="button long" type="submit" name="btnSerch" id="btnSerch" value="検索" >
+									<input class="button long" type="submit" name="btnCsv" id="btnCsv" value="出力" >
+								</td>
+							</tr>
+						</table>
+					</div>
+					</br>
+				</div>
+			</form>
+			<!-- #formArea end -->
+
+			<br clear="all"/>
+			<div style="margin-left: 10px;">
+				<table id="list"></table>
+				<div id="pager"></div>
+			</div>
+			</br>
+		</div>
+		<!-- #main end -->
+
+	</div>
+	<!-- #contents end -->
+
+	<!-- #header include -->
+	<? @include("html/include/footer.inc"); ?>
+
+</div>
+<!-- #top end -->
+
+</body>
+</html>

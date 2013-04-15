@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
+<meta name="keywords" content="ぱど基幹サブシステム,社員検索" />
+<meta name="description" content="ぱど基幹サブシステム 社員検索ダイアログ" />
+<link rel="stylesheet" href="/html/css/common.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/style.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/jquery-ui-1.10.0.custom.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/ui.jqgrid.css" type="text/css" />
+<script type="text/javascript" src="/html/js/jquery.js"></script>
+<script type="text/javascript" src="/html/js/jquery-ui-1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="/html/js/jquery.jqGrid.min.js"></script>
+<script type="text/javascript" src="/html/js/i18n/grid.locale-ja.js"></script>
+<script type="text/javascript" src="/html/js/i18n/jquery.ui.datepicker-ja.js"></script>
+<script type="text/javascript" src="/html/js/common.js"></script>
+<script type="text/javascript" src="/html/js/blockUI.js"></script>
+
+<script type="text/javascript">
+
+function onClickSelect($type)
+{
+	var grid = jQuery("#list");
+	var id = grid.getGridParam("selrow");
+
+	if(id)
+	{
+		var row = grid.getRowData(id);
+
+		if ($type == <?= $this->code_connect_employee ?>)
+		{
+			window.opener.document.frmMain.txtConnectCd.value = row.employeeid;
+			window.opener.document.frmMain.txtConnectName.value = row.employeename;
+		}
+		else if ($type == <?= $this->code_claim_employee ?>)
+		{
+			window.opener.document.frmMain.txtClaimCd.value = row.employeeid;
+			window.opener.document.frmMain.txtClaimName.value = row.employeename;
+		}
+		else if ($type == <?= $this->code_climent_employee ?>)
+		{
+			window.opener.document.frmClient.txtEmployeeCd.value = row.employeeid;
+			window.opener.document.frmClient.txtEmployeeName.value = row.employeename;
+		}
+
+		window.close();
+	}
+	else { alert("選択されてません"); }
+}
+
+</script>
+
+<script type="text/javascript">
+jQuery(document).ready(function()
+{
+	var arrdata = <?= $this->arrdata ?>;
+
+	$('#list').jqGrid({
+		data     : arrdata,
+		datatype : 'local',
+		colNames : [ '社員ID','社員名','社員名カナ'],
+		colModel : [ 
+			{ name : 'employeeid' , index : 'employeeid', width:30, align:'center'},
+			{ name : 'employeename' , index : 'employeename', width:50, align:'center'},
+			{ name : 'employeekana' , index : 'employeekana', width:50, align:'center'}
+		],
+		caption     : '社員一覧',
+		rowTotal    : 2000,
+		viewrecords : true,
+		gridview    : true,
+		pager       : $("#pager"),
+		rowNum      : 10,
+		rowList     : [10,20,30],
+		sortname    : 'employeeid',
+		sortorder   : "asc",
+		height      : 240,
+		width       : 375,
+		viewrecords : true,
+		ondblClickRow: function(id){ onClickSelect(<?= $this->Type ?>); }
+	});
+});
+</script>
+
+<title>ぱど基幹サブシステム 社員検索</title>
+
+</head>
+<body>
+
+<!-- #contents start -->
+<div id="contents">
+
+	<form name="frmEmployee" action="employee" method="post">
+		<input type="hidden" name="type" value="<?= $this->Type ?>">
+		<input type="hidden" name="fhold" value="<?= $this->Fhold ?>">
+		<input type="hidden" name="post" value="<?= $this->Post ?>">
+		<input type="hidden" name="token" value="<?= $this->Token ?>">
+
+		<!-- #formSubArea start -->
+		<div id="formSubArea" style="width:380px;">
+			<table>
+				<tr>
+					<th width="80">営業拠点</th>
+					<td width="275">
+						<?= $this->ekyoten ?>
+					</td>
+				</tr>
+				<tr>
+					<th>部署</th>
+					<td>
+						<?= $this->busho ?>
+					</td>
+				</tr>
+				<tr>
+					<th>社員</th>
+					<td colspan="3">
+						<input type="text" name="serch" id="txtEmployee" value="<?= $this->Seach ?>" maxlength="50" style="width:270px;" />
+					</td>
+				</tr>
+			</table>
+			<div id="formBtnArea" class="formBtnArea" style="width:380px;">
+				<table width="380">
+					<tr>
+						<td>
+							<input class="button" type="submit" name="btnSerch" id="btnSerch" value="検索" >
+						</td>
+					</tr>
+				</table>
+			</div>
+			</br>
+		</div>
+		<!-- #formSubArea end -->
+	</form>
+
+	<br clear="all"/>
+	<div style="margin-left: 10px;">
+		<span class="required"><?= $this->ErrMsg ?></span>
+		<table id="list"></table>
+		<div id="pager"></div>
+		</br>
+		<table width="380">
+			<tr align="right">
+				<td>
+					<input type="button" id="btnSelect" class="button" value="選択" onclick="onClickSelect(<?= $this->Type ?>);" />
+					<input type="button" id="btnCancel" class="button" value="キャンセル" onclick="window.close(); return false;" />
+				</td>
+			</tr>
+		</table>
+	</div>
+
+</div>
+<!-- #contents end -->
+
+</body>
+</html>

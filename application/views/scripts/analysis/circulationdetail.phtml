@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
+<meta name="keywords" content="新基幹サブシステム,分析,部数表詳細" />
+<meta name="description" content="新基幹サブシステム 部数表詳細指定" />
+<link rel="stylesheet" href="/html/css/common.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/style.css" type="text/css" />
+<script type="text/javascript" src="/html/js/jquery.js"></script>
+<script type="text/javascript" src="/html/js/common.js"></script>
+
+<!-- ** Javascript ** --> 
+<link rel="stylesheet" type="text/css" href="/html/css/jquery-ui-1.10.0.custom.css" />
+<link rel="stylesheet" type="text/css" href="/html/css/ui.jqgrid.css" />
+<script type="text/javascript" src="/html/js/jquery.jqGrid.min.js" ></script>
+<script type="text/javascript" src="/html/js/jquery.jqGrid.src.js"></script>
+<script type="text/javascript" src="/html/js/jquery-ui-1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="/html/js/i18n/grid.locale-ja.js"></script>
+<script type="text/javascript" src="/html/js/i18n/jquery.ui.datepicker-ja.js"></script>
+
+<title>新基幹サブシステム 部数表詳細</title>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+	var arrdata = [
+	{base:"首都圏", block:"A", area:"101:緑区", zone:"01", town:"01:子安通1丁目", isLeaf:false, expanded:false},
+	{base:"首都圏", block:"A", area:"101:緑区", zone:"01", town:"02:子安通2丁目", isLeaf:false, expanded:false},
+	{base:"首都圏", block:"A", area:"101:緑区", zone:"01", town:"03:子安通3丁目", isLeaf:false, expanded:false},
+	{base:"首都圏", block:"A", area:"101:緑区", zone:"02", town:"01:亀住町・浦島町1丁目", isLeaf:false, expanded:false},
+	{base:"首都圏", block:"A", area:"101:緑区", zone:"02", town:"02:亀住町・浦島町2丁目", isLeaf:false, expanded:false},
+	{base:"首都圏", block:"A", area:"101:緑区", zone:"02", town:"03:亀住町・浦島町3丁目", isLeaf:false, expanded:false},
+	{base:"首都圏", block:"A", area:"102:青葉", zone:"01", town:"01:子安通1丁目", isLeaf:false, expanded:false},
+	{base:"首都圏", block:"A", area:"102:青葉", zone:"01", town:"02:子安通2丁目", isLeaf:false, expanded:false},
+	{base:"首都圏", block:"A", area:"102:青葉", zone:"02", town:"01:亀住町・浦島町1丁目"},
+	{base:"首都圏", block:"A", area:"102:青葉", zone:"02", town:"02:亀住町・浦島町2丁目"},
+	{base:"首都圏", block:"B", area:"103:宮前", zone:"01", town:"01:子安通1丁目"},
+	{base:"首都圏", block:"B", area:"103:宮前", zone:"01", town:"02:子安通2丁目"},
+	{base:"首都圏", block:"B", area:"103:宮前", zone:"02", town:"01:亀住町・浦島町1丁目"},
+	{base:"首都圏", block:"B", area:"103:宮前", zone:"02", town:"02:亀住町・浦島町2丁目"},
+	{base:"福岡", block:"A", area:"103:宮前", zone:"01", town:"01:子安通1丁目"},
+	{base:"福岡", block:"A", area:"103:宮前", zone:"01", town:"02:子安通2丁目"},
+	{base:"福岡", block:"A", area:"103:宮前", zone:"02", town:"01:亀住町・浦島町1丁目"},
+	{base:"福岡", block:"A", area:"103:宮前", zone:"02", town:"02:亀住町・浦島町2丁目"},
+	{base:"神奈川", block:"A", area:"103:宮前", zone:"01", town:"01:子安通1丁目"},
+	{base:"神奈川", block:"A", area:"103:宮前", zone:"01", town:"02:子安通2丁目"},
+	{base:"神奈川", block:"A", area:"103:宮前", zone:"02", town:"01:亀住町・浦島町1丁目"},
+	{base:"神奈川", block:"A", area:"103:宮前", zone:"02", town:"02:亀住町・浦島町2丁目"},
+	];
+	
+	$('#list').jqGrid({
+		data     : arrdata,
+		datatype : 'local',
+		colNames : [ '流通拠点', 'ブロック', 'エリア','区域','地域・町名'],
+		colModel : [ 
+			{ name : 'base' , index : 'base', width:100},
+			{ name : 'block', index : 'block',width:50},
+			{ name : 'area' , index : 'area', width:100},
+			{ name : 'zone' , index : 'zone', width:50}, 
+			{ name : 'town' , index : 'town', width:300}, 
+		],
+		caption		: '部数表詳細指定',
+		height		: 'auto', //データの量に合わせた表の高さにする
+		
+		treeGrid     : true,
+		treeGridModel: 'nested',
+		treedatatype : 'local',
+		multiselect  : true,
+		scrollrows   : true,
+		
+		grouping	 : true,	//グルーピングを使用する
+		groupingView : {		//グルーピングの設定
+			groupField		 : ['base','block','area','zone'], //グループ化したい項目
+			groupText		 : ['<b>{0}</b>'], //グループ化した項目の表示名
+			groupOrder 		 : ['asc'], //昇順
+			groupSummary	 : [false]  //サマリータイプを使用する
+		}
+	});
+});
+
+</script>
+
+</head>
+<body>
+	<form  method="post" action="./confirm.php" enctype="multipart/form-data">
+		<!-- #formAreaInner start -->
+		<div id="formAreaInner" clearfix">
+			<table id="list"><tr><td></td></tr></table>
+		</div>
+	</form>
+</body>
+</html>

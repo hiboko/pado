@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
+<meta name="keywords" content="ぱど基幹サブシステム,ログイン" />
+<meta name="description" content="ぱど基幹サブシステム ログイン" />
+<link rel="stylesheet" href="/html/css/common.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/style.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/jquery-ui-1.10.0.custom.css" >
+<script type="text/javascript" src="/html/js/jquery.js"></script>
+<script type="text/javascript" src="/html/js/common.js"></script>
+<script type="text/javascript" src="/html/js/jquery-ui-1.10.0.custom.js"></script>
+
+<title>ぱど基幹サブシステム ログイン</title>
+
+</head>
+<body>
+
+<!-- #top start -->
+<div id="top">
+
+	<!-- #header include -->
+	<? @include("html/include/header.inc"); ?>
+
+	<!-- #contents start -->
+	<div id="contents">
+	
+		<!-- #main start -->
+		<div id="main">
+			<h2>ログイン</h2>
+			<p>ログイン情報を入力して下さい。</p>
+			<p><span class="required"><?= $this->ErrMsg ?></span></p>
+			<form name="frmMain" action="index" method="post">
+				<input type="hidden" name="url" value="<?= $this->Url ?>">
+				<input type="hidden" name="count" value="<?= $this->Count ?>">
+
+				<div id="formArea">
+					<table width="280" style="margin-left: 400px;">
+						<tr>
+							<th width="150">会社コード</th>
+							<td><input type="text" name="kcd" id="txtCompanyCd" value="<?= $this->CompanyCd ?>" size="20" maxlength="3" /></td>
+						</tr>
+						<tr>
+							<th>ログインID</th>
+							<td><input type="text" name="id" id="txtLoginId" value="<?= $this->LoginId ?>" size="20" maxlength="50" /></td>
+						</tr>
+						<tr>
+							<th>パスワード</th>
+							<td><input type="password" name="pass" id="txtPassword" value="<?= $this->Password ?>" size="20" maxlength="50" /></td>
+						</tr>
+					</table>
+				</div>
+
+				<div id="formBtnArea" class="FormBtnArea">
+					<table width="650"  style="margin-top: 20px; margin-bottom: 120px;">
+						<tr>
+							<td><input type="submit" class="button long" name="btnLogin" id="btnLogin" value="ログイン" ></td>
+						</tr>
+					</table>
+				</div>
+				</br>
+			</form>
+		</div>
+		<!-- #main end -->
+
+	</div>
+	<!-- #contents end -->
+	
+	<!-- #header include -->
+	<? @include("html/include/footer.inc"); ?>
+
+</div>
+<!-- #top end -->
+
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
+<meta name="keywords" content="ぱど基幹サブシステム,コード情報検索" />
+<meta name="description" content="ぱど基幹サブシステム コード情報検索ダイアログ" />
+<link rel="stylesheet" href="/html/css/common.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/style.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/jquery-ui-1.10.0.custom.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/ui.jqgrid.css" type="text/css" />
+<script type="text/javascript" src="/html/js/jquery.js"></script>
+<script type="text/javascript" src="/html/js/jquery-ui-1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="/html/js/jquery.jqGrid.min.js"></script>
+<script type="text/javascript" src="/html/js/i18n/grid.locale-ja.js"></script>
+<script type="text/javascript" src="/html/js/i18n/jquery.ui.datepicker-ja.js"></script>
+<script type="text/javascript" src="/html/js/common.js"></script>
+<script type="text/javascript" src="/html/js/blockUI.js"></script>
+
+<script type="text/javascript">
+
+function onClickSelect($type)
+{
+	var grid = jQuery("#list");
+	var id = grid.getGridParam("selrow");
+
+	if(id)
+	{
+		var row = grid.getRowData(id);
+
+		if ($type == <?= $this->code_daibunrui ?>)
+		{
+			window.opener.document.frmMain.txtBClassCd.value = row.codeid;
+			window.opener.document.frmMain.txtBClassName.value = row.codename;
+			window.opener.document.frmMain.txtMClassCd.value = '';
+			window.opener.document.frmMain.txtMClassName.value = '';
+			window.opener.document.frmMain.txtKindCd.value = '';
+			window.opener.document.frmMain.txtKindName.value = '';
+		}
+		else if ($type == <?= $this->code_chubunrui ?>)
+		{
+			window.opener.document.frmMain.txtBClassCd.value = row.dcodeid;
+			window.opener.document.frmMain.txtBClassName.value = row.dname;
+			window.opener.document.frmMain.txtMClassCd.value = row.ccodeid;
+			window.opener.document.frmMain.txtMClassName.value = row.codename;
+			window.opener.document.frmMain.txtKindCd.value = '';
+			window.opener.document.frmMain.txtKindName.value = '';
+		}
+		else if ($type == <?= $this->code_shubetu ?>)
+		{
+			window.opener.document.frmMain.txtBClassCd.value = row.dcodeid;
+			window.opener.document.frmMain.txtBClassName.value = row.dname;
+			window.opener.document.frmMain.txtMClassCd.value = row.ccodeid;
+			window.opener.document.frmMain.txtMClassName.value = row.cname;
+			window.opener.document.frmMain.txtKindCd.value = row.scodeid;
+			window.opener.document.frmMain.txtKindName.value = row.codename;
+		}
+		else if ($type == <?= $this->code_keisaihan ?>)
+		{
+			window.opener.document.frmMain.txtReportCd.value = row.codeid;
+			window.opener.document.frmMain.txtReportName.value = row.codename;
+		}
+
+		window.close();
+	}
+	else { alert("選択されてません"); }
+}
+
+jQuery(document).ready(function()
+{
+	var arrdata = <?= $this->arrdata ?>;
+
+	$('#list').jqGrid({
+		data     : arrdata,
+		datatype : 'local',
+		colNames : [ 'ID','名称','大分類','大分類名','中分類','中分類名','種別'],
+		colModel : [ 
+			{ name : 'codeid' , index : 'codeid', width:30, align:'center'},
+			{ name : 'codename' , index : 'codename', width:80, align:'left'},
+			{ name : 'dcodeid' , index : 'dcodeid', hidden: true , width:30, align:'center'},
+			{ name : 'dname' , index : 'dname', hidden: true , width:30, align:'center'},
+			{ name : 'ccodeid' , index : 'ccodeid', hidden: true , width:30, align:'center'},
+			{ name : 'cname' , index : 'cname', hidden: true , width:30, align:'center'},
+			{ name : 'scodeid' , index : 'scodeid', hidden: true , width:30, align:'center'}
+		],
+		caption     : 'コード情報一覧',
+		rowTotal    : 2000,
+		gridview    : true,
+		pager       : $("#pager"),
+		rowNum      : 10,
+		rowList     : [10,20,30],
+		sortname    : 'codeid',
+		sortorder   : "asc",
+		height      : 231,
+		width       : 310,
+		viewrecords : true,
+		ondblClickRow: function(id){ onClickSelect(<?= $this->Type ?>); }
+	});
+});
+</script>
+
+<title>ぱど基幹サブシステム コード情報検索</title>
+
+</head>
+<body>
+
+<!-- #contents start -->
+<div id="contents">
+
+	<form name="frmCode" action="code" method="post">
+		<input type="hidden" name="type" value="<?= $this->Type ?>">
+		<input type="hidden" name="dcd" value="<?= $this->DCode ?>">
+		<input type="hidden" name="ccd" value="<?= $this->CCode ?>">
+		<input type="hidden" name="token" value="<?= $this->Token ?>">
+
+		<!-- #formSubArea start -->
+		<div id="formSubArea" style="width:310px;">
+			<table>
+				<tr>
+					<th width="80">検索項目</th>
+					<td>
+						<input type="text" name="serch" value="<?= $this->SerchName ?>" maxlength="50" style="width:200px;" />
+					</td>
+				</tr>
+			</table>
+			<div id="formBtnArea" class="formBtnArea" style="width:310px;">
+				<table width="310">
+					<tr>
+						<td>
+							<input class="button" type="submit" name="btnSerch" id="btnSerch" value="検索" >
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+		<!-- #formSubArea end -->
+
+		<br clear="all"/>
+		<div style="margin-left: 10px;">
+			<span class="required"><?= $this->ErrMsg ?></span>
+			<table id="list"></table>
+			<div id="pager"></div>
+			</br>
+			<table width="310">
+				<tr align="right">
+					<td>
+						<input type="button" id="btnSelect" class="button" value="選択" onclick="onClickSelect(<?= $this->Type ?>)" />
+						<input type="button" id="btnCancel" class="button" value="キャンセル" onclick="window.close(); return false;" />
+					</td>
+				</tr>
+			</table>
+		</div>
+	</form>
+
+</div>
+<!-- #contents end -->
+
+</body>
+</html>

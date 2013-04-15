@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
+<meta name="keywords" content="ぱど基幹サブシステム,顧客検索" />
+<meta name="description" content="ぱど基幹サブシステム 顧客検索ダイアログ" />
+<link rel="stylesheet" href="/html/css/common.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/style.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/jquery-ui-1.10.0.custom.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/ui.jqgrid.css" type="text/css" />
+<script type="text/javascript" src="/html/js/jquery.js"></script>
+<script type="text/javascript" src="/html/js/jquery-ui-1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="/html/js/jquery.jqGrid.min.js"></script>
+<script type="text/javascript" src="/html/js/i18n/grid.locale-ja.js"></script>
+<script type="text/javascript" src="/html/js/i18n/jquery.ui.datepicker-ja.js"></script>
+<script type="text/javascript" src="/html/js/common.js"></script>
+<script type="text/javascript" src="/html/js/blockUI.js"></script>
+
+<script type="text/javascript">
+
+function btnEmp_onclick($type)
+{
+	var child = "<?= $this->cdialog_employee_url ?>type/" + $type + "/?token=<?= $this->Token ?>"; 
+	window.open(child,"employeechild","width=420,height=600,scrollbars=no");
+}
+
+function onClickSelect($type)
+{
+	var grid = jQuery("#list");
+	var id = grid.getGridParam("selrow");
+
+	if(id)
+	{
+		var row = grid.getRowData(id);
+
+		if ($type == <?= $this->code_contract ?>)
+		{
+			window.opener.document.frmMain.txtContractCd.value = row.clientcd;
+			window.opener.document.frmMain.txtContractName.value = row.cname;
+		}
+		else if ($type == <?= $this->code_claimant ?>)
+		{
+			window.opener.document.frmMain.txtClaimantCd.value = row.clientcd;
+			window.opener.document.frmMain.txtClaimantName.value = row.cname;
+		}
+		else if ($type == <?= $this->code_advertiser ?>)
+		{
+			window.opener.document.frmMain.txtAdvertiserCd.value = row.clientcd;
+			window.opener.document.frmMain.txtAdvertiserName.value = row.cname;
+		}
+
+		window.close();
+	}
+	else { alert("選択されてません"); }
+}
+</script>
+
+<script type="text/javascript">
+jQuery(document).ready(function()
+{
+	var arrdata = <?= $this->arrdata ?>;
+
+	$('#list').jqGrid({
+		data     : arrdata,
+		datatype : 'local',
+		colNames : [ '顧客コード','顧客名/顧客名カナ','住所/電話番号','業種細分','営業担当/請求担当','客先取引担当/請求担当','他社請求先', '顧客名'],
+		colModel : [ 
+			{ name : 'clientcd' , index : 'client', width:30, align:'center'},
+			{ name : 'clientname' , index : 'clientname', width:80, align:'left',
+					formatter:function breakLine(cellvalue, options, rowObject)
+					{ return cellvalue.replace(/;/g,'<br />');}
+			},
+			{ name : 'adress' , index : 'adress', width:80, align:'left',
+					formatter:function breakLine(cellvalue, options, rowObject)
+					{ return cellvalue.replace(/;/g,'<br />');}
+			},
+			{ name : 'type' , index : 'type', width:50, align:'center'},
+			{ name : 'employee' , index : 'employee', width:50, align:'center',
+					formatter:function breakLine(cellvalue, options, rowObject)
+					{ return cellvalue.replace(/;/g,'<br />');}
+			},
+			{ name : 'client' , index : 'client', width:50, align:'center',
+					formatter:function breakLine(cellvalue, options, rowObject)
+					{ return cellvalue.replace(/;/g,'<br />');}
+			},
+			{ name : 'oclient' , index : 'oclient', width:50, align:'center'},
+			{ name : 'cname' , index : 'cname', hidden: true , width:30, align:'center'}
+		],
+		caption     : '顧客一覧',
+		rowTotal    : 1000,
+		viewrecords : true,
+		gridview    : true,
+		pager       : $("#pager"),
+		rowNum      : 10,
+		rowList     : [10,20,30],
+		sortname    : 'clientcd',
+		sortorder   : "asc",
+		height      : 200,
+		width       : 1200,
+		viewrecords : true,
+		ondblClickRow: function(id){ onClickSelect(<?= $this->Type ?>); }
+	});
+});
+</script>
+
+<title>ぱど基幹サブシステム 顧客検索</title>
+
+</head>
+<body>
+
+<!-- #contents start -->
+<div id="contents">
+
+	<!-- #main start -->
+	<div id="main">
+		<form name="frmClient" action="client" method="post">
+			<input type="hidden" name="type" value="<?= $this->Type ?>">
+			<input type="hidden" name="token" value="<?= $this->Token ?>">
+
+			<!-- #formArea start -->
+			<div id="formArea">
+				<table>
+					<tr>
+						<th width="100">顧客名</th>
+						<td width="80">
+							<input type="text" name="cname" id="txtClientName" value="<?= $this->ClientName ?>" maxlength="50" style="width:310px;" />
+						</td>
+						<th>顧客名カナ</th>
+						<td colspan="3">
+							<input type="text" name="ckana" id="txtClientKana" value="<?= $this->ClientKana ?>" maxlength="50" style="width:310px;" />
+						</td>
+					</tr>
+					<tr>
+						<th>営業担当者</th>
+						<td>
+							<input type="text" name="ecd" id="txtEmployeeCd" value="<?= $this->EmployeeCd ?>" onChange="this.form.submit();" maxlength="6" style="width:50px;" />
+							<input type="button" id="btnEmployee" value="参照" onclick="btnEmp_onclick(<?= $this->code_climent_employee ?>)" />
+							<input type="text" class="readonly" readonly name="ename" id="txtEmployeeName" value="<?= $this->EmployeeName ?>" maxlength="50" style="width:195px;" />
+						</td>
+						<th>電話番号</th>
+						<td>
+							<input type="text" name="tel" id="txtTel" value="<?= $this->Tel ?>" maxlength="13" style="width:100px;" />
+						</td>
+					</tr>
+					<tr>
+						<th>住所</th>
+						<td colspan="3">
+							<input type="text" name="address" id="txtAddress" value="<?= $this->Address ?>" maxlength="60" style="width:310px;" />
+						</td>
+					</tr>
+					<tr>
+						<th>客先取引担当者</th>
+						<td>
+							<input type="text" name="conname" id="txtConnectName" value="<?= $this->ConnectName ?>" maxlength="40" style="width:310px;" />
+						</td>
+						<th>客先請求担当者</th>
+						<td>
+							<input type="text" name="claname" id="txtClaimName" value="<?= $this->ClaimName ?>" maxlength="40" style="width:310px;" />
+						</td>
+					</tr>
+				</table>
+				<div id="formBtnArea" class="FormBtnArea">
+					<table width="880">
+						<tr>
+							<td>
+								<input class="button" type="submit" name="btnSerch" id="btnSerch" value="検索" >
+							</td>
+						</tr>
+					</table>
+				</div>
+				</br>
+			</div>
+			<!-- #formArea end -->
+		</form>
+
+		<br clear="all"/>
+		<div style="margin-left: 10px;">
+			<span class="required"><?= $this->ErrMsg ?></span>
+			<table id="list"></table>
+			<div id="pager"></div>
+			<div id="formBtnArea" class="FormBtnArea">
+				<table width="1190">
+					<tr>
+						<td>
+							<input type="button" id="btnSelect" class="button" value="選択" onclick="onClickSelect(<?= $this->Type ?>);" />
+							<input type="button" id="btnCancel" class="button" value="キャンセル" onclick="window.close(); return false;" />
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
+	<!-- #main end -->
+
+</div>
+<!-- #contents end -->
+
+</body>
+</html>
