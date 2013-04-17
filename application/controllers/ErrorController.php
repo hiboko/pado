@@ -26,6 +26,7 @@ class ErrorController extends Zend_Controller_Action
 		$clsComConst = new ComConst();
 		$errors = $this->_getParam('error_handler');
 		$code = $errors->exception->getCode();
+		$logflg = false;
 
 		if (!$errors || !$errors instanceof ArrayObject)
 		{
@@ -50,21 +51,25 @@ class ErrorController extends Zend_Controller_Action
 						$this->getResponse()->setHttpResponseCode(101);
 						$priority = Zend_Log::CRIT;
 						$this->view->message = 'DBの接続に失敗しました。';
+						$logflg = true;
 						break;
 					case 102:
 						$this->getResponse()->setHttpResponseCode(102);
 						$priority = Zend_Log::CRIT;
 						$this->view->message = 'SQLの実行に失敗しました。';
+						$logflg = true;
 						break;
 					case 400:
 						$this->getResponse()->setHttpResponseCode(400);
 						$priority = Zend_Log::ERR;
 						$this->view->message = 'リクエストが不正です。';
+						$logflg = true;
 						break;
 					case 403:
 						$this->getResponse()->setHttpResponseCode(403);
 						$priority = Zend_Log::NOTICE;
 						$this->view->message = 'アクセスを拒否しました。';
+						$logflg = true;
 						break;
 					case 404:
 						$this->getResponse()->setHttpResponseCode(404);
@@ -76,6 +81,7 @@ class ErrorController extends Zend_Controller_Action
 						$this->getResponse()->setHttpResponseCode(500);
 						$priority = Zend_Log::CRIT;
 						$this->view->message = 'アプリケーションエラーが発生しました。';
+						$logflg = true;
 						//$this->view->message = $errors->exception->getMessage();
 						break;
 				}
@@ -84,12 +90,15 @@ class ErrorController extends Zend_Controller_Action
 
 		try
 		{
-			//エラーログ出力
-			$logFile = $clsComConst::ERROR_LOG_PATH. '/'. strtr('err_#DT#.log', array('#DT#'=>date('Ymd')));
-			$logger = new Zend_Log(new Zend_Log_Writer_Stream($logFile));
-			$msg = $this->view->message;
-			if($errors->exception->getMessage() != ""){ $msg = $msg . "(" . $errors->exception->getMessage() . ")"; }
-			$logger->log($msg, $priority);
+			if($logflg)
+			{
+				//エラーログ出力
+				$logFile = $clsComConst::ERROR_LOG_PATH. '/'. strtr('err_#DT#.log', array('#DT#'=>date('Ymd')));
+				$logger = new Zend_Log(new Zend_Log_Writer_Stream($logFile));
+				$msg = $this->view->message;
+				if($errors->exception->getMessage() != ""){ $msg = $msg . "(" . $errors->exception->getMessage() . ")"; }
+				$logger->log($msg, $priority);
+			}
 		}
 		catch(Exception $e)
 		{
