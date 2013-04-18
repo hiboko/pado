@@ -18,7 +18,7 @@ class AnalysisController extends Zend_Controller_Action
 	* 初期処理
 	* 
 	* @param
-	* @return 
+	* @return
 	*/
 	public function init()
 	{
@@ -29,11 +29,110 @@ class AnalysisController extends Zend_Controller_Action
 	* 部数表
 	* 
 	* @param
-	* @return 
+	* @return
 	*/
 	public function circulationAction()
 	{
-		// action body
+		//ファイル読み込み
+		require_once dirname(__FILE__) . "/../models/SqlCirculation.php";
+
+		//初期処理
+		$clsCommon = new Common();
+		$clsComConst = new ComConst();
+		$clsParamCheck = new ParamCheck();
+		$clsSqlCirculation = new SqlCirculation();
+		$arrErr = array();
+		$arrPram = array();
+		$arrCd = "";
+
+		//パラメータ設定
+		$type = $clsCommon->SetParam($this->getRequest(), "type");				//種別
+		$arrrpt = $clsCommon->SetParam($this->getRequest(), "arrrpt");			//掲載版コード
+		$between = $clsCommon->SetParam($this->getRequest(), "between");		//期間
+		$token = $clsCommon->SetParam($this->getRequest(), "token");
+
+		//アクセスチェック
+		if(!$clsCommon->ChkAccess($token)) { throw new Exception("", $clsComConst::ERR_CODE_403); }
+
+		//セッション情報取得
+		$session = $clsCommon->GetSession();
+
+		//初期値設定
+		if(!isset($type)) { $type = 1; }
+
+		//種別ラジオボタン
+		switch($type)
+		{
+			case 1:
+			case 2:
+				//部数表EXCEL出力
+				$arrCd = $clsComConst::CODE_CIRCULATION_EXCEL;
+				break;
+			case 3:
+				//部数表CSV出力
+				$arrCd = $clsComConst::CODE_CIRCULATION_CSV;
+				break;
+			default:
+				throw new Exception("種別が不正です。", $clsComConst::ERR_CODE_400);
+				break;
+		}
+
+		//部数表掲載版情報検索
+		$arrPram = array("kcd" => $session->kcd, "type" => $arrCd);
+		$blnRet = $clsSqlCirculation->SelectCirculationKeisaihan($clsComConst::DB_KIKAN , $arrPram);
+		if($blnRet) { $arrRet = $clsSqlCirculation->GetData(); if(count($arrRet) > 0) { $arrrpt =  $arrRet[0]["cd"]; }}
+		$this->view->report = $clsCommon->ConverMultiSelectList("report", $arrRet, $arrrpt, false, false, false);
+
+		//掲載版選択処理
+		if(isset($arrrpt))
+		{
+			$elements = split(",", $arrrpt);
+
+			//パラメータチェック
+			foreach( $elements as $val )
+			{
+				if(!$clsParamCheck->ChkNumeric($val, "掲載版コード"))
+				{ throw new Exception("掲載版コードが不正です。", $clsComConst::ERR_CODE_400); break; }
+			}
+
+			//部数表期間情報検索
+			$arrRet = array();
+			$arrPram = array("kcd" => $session->kcd, "arrcd" => $arrrpt);
+			$blnRet = $clsSqlCirculation->SelectCirculationYmd($clsComConst::DB_KIKAN , $arrPram);
+			if($blnRet) { $arrRet = $clsSqlCirculation->GetData(); }
+
+			//期間フォーマット生成
+			for ($i = 0 ; $i < count($arrRet); $i++)
+			{
+				$date_from = date_create($arrRet[$i]['name']);
+
+				if(isset($arrRet[$i + 1]['name']))
+				{ 
+					$date_to = date_create($arrRet[$i + 1]['name']);
+					$date = date_format($date_from, 'Y/m/d') . "～" . date('Y/m/d', strtotime(date_format($date_to, 'Y/m/d') . "-1 day"));
+				}
+				else { $date = date_format($date_from, 'Y/m/d') . "～"; }
+
+				$arrRet[$i]['cd'] = $date;
+				$arrRet[$i]['name'] = $date;
+			}
+			if(count($arrRet) == 0) { $arrRet = array(array("name" => "1990/01/01～")); }
+			$this->view->between = $clsCommon->ConverArrDropdownList("between", $arrRet, $between, false, false, false);
+		}
+		else { $this->view->between = $clsCommon->ConverArrDropdownList("between", array(), $between, true, false, false); }
+
+		//お知らせ情報検索
+		$arrRet = array();
+		$arrPram = array("kcd" => $session->kcd);
+		$blnRet = $clsSqlCirculation->SelectCirculationMsg($clsComConst::DB_KIKAN_SUB , $arrPram);
+		if($blnRet) { $arrRet = $clsSqlCirculation->GetData(); }
+		if(isset($arrRet[0]["val"])) { $this->view->Inform = $clsCommon->ConverDisp($arrRet[0]["val"]); }
+
+		//設定処理
+		$this->view->circulation_ditail_url = $clsComConst::ANALYSIS_CIRCULATION_DITAIL_URL;
+		$this->view->Type = $clsCommon->ConverDisp($type);
+		$this->view->ArrRpt = $clsCommon->ConverDisp($arrrpt);
+		$this->view->Token = $clsCommon->ConverDisp($token);
 	}
 
 	/**
@@ -44,7 +143,110 @@ class AnalysisController extends Zend_Controller_Action
 	*/
 	public function circulationdetailAction()
 	{
-		// action body
+		//ファイル読み込み
+		require_once dirname(__FILE__) . "/../models/SqlCirculation.php";
+
+		//初期処理
+		$clsCommon = new Common();
+		$clsComConst = new ComConst();
+		$clsParamCheck = new ParamCheck();
+		$clsSqlCirculation = new SqlCirculation();
+		$arrErr = array();
+		$arrPram = array();
+
+		//パラメータ設定
+		$type = $clsCommon->SetParam($this->getRequest(), "type");				//種別
+		$report = $clsCommon->SetParam($this->getRequest(), "report");			//掲載版コード
+		$toymd = $clsCommon->SetParam($this->getRequest(), "toymd");			//期間(開始)
+		$fromymd = $clsCommon->SetParam($this->getRequest(), "fromymd");		//期間(終了)
+		$grid = $clsCommon->SetParam($this->getRequest(), "grid");				//Gridデータ
+		$token = $clsCommon->SetParam($this->getRequest(), "token");
+
+		//アクセスチェック
+		if(!$clsCommon->ChkAccess($token, $clsComConst::CODE_DIALOG)) { throw new Exception("", $clsComConst::ERR_CODE_403); }
+
+		//パラメータチェック
+		if($clsParamCheck->ChkMust($type, "種別")) { $clsParamCheck->ChkNumeric($type, "種別"); }
+		if($clsParamCheck->ChkMust($report, "掲載版コード"))
+		{
+			$elements = split(",", $report);
+			foreach( $elements as $val ) { if(!$clsParamCheck->ChkNumeric($val, "掲載版コード")){ break; } }
+		}
+		if($clsParamCheck->ChkMust($toymd, "期間(開始)")) { $clsParamCheck->ChkDate($toymd, "期間(開始)"); }
+		if($clsParamCheck->ChkMust($fromymd, "期間(終了)")) { $clsParamCheck->ChkDate($fromymd, "期間(終了)"); }
+		$arrErr = $clsParamCheck->GetErrMsg();
+		foreach($arrErr as $value) { $msg .= $value; }
+
+		if(count($arrErr) > 0) { throw new Exception($msg, $clsComConst::ERR_CODE_400); }
+
+		//セッション情報取得
+		$session = $clsCommon->GetSession();
+
+		//Gridデータデコード
+		if(isset($grid)){ $grid = json_decode($grid); } else { $grid = array();}
+
+		//出力ボタン押下時
+		if($_POST['btnPrint'])
+		{
+			if(count($grid) > 0)
+			{
+				//帳票出力処理
+				//$clsCommon->SetCsv("受注履歴", $grid, "契約主コード, 契約主名, 掲載版, 掲載エリア, 掲載日, 掲載号, 商品名, サイズ, 受注番号, 売価, 制作費, 小計, 消費税, 総額, 粗利, 受注担当者コード, 受注担当者名, 入金予定日");
+				//exit();
+				
+				// 一時ファイル
+				$fileName = '/tmp/output.xls';
+
+				$excel = new PHPExcel();
+				// シートの設定
+				$excel->setActiveSheetIndex(0);
+				$sheet = $excel->getActiveSheet();
+				$sheet->setTitle('sheet name');
+				// セルに値を入れる
+				$sheet->setCellValue('A1', 'あいうえお');
+				// Excel95 形式で出力
+				$writer = PHPExcel_IOFactory::createWriter($excel, 'Excel5');
+				$writer->save($fileName); // ホントはファイル出力せずにバイナリで返して欲しい
+
+				// ダウンロード
+				$this->getResponse()
+					->setHeader('Content-Type', 'application/vnd.ms-excel')
+					->setHeader('Content-Disposition', 'attachment; filename="test.xls"')
+					->appendBody(file_get_contents($fileName))
+					->sendResponse();
+				exit;
+
+
+			}
+			else
+			{
+				$this->view->ErrMsg = $clsComConst::ERR_MSG_CSV;
+				$this->view->arrdata = json_encode($grid);
+			}
+		}
+		else
+		{
+			//部数表詳細情報検索
+			$arrPram = array("kcd" => $session->kcd, "arrcd" => $report, "toymd" => $toymd, "fromymd" => $fromymd);
+			$blnRet = $clsSqlCirculation->SelectCirculationDetail($clsComConst::DB_KIKAN , $arrPram);
+
+			if($blnRet) { $arrRet = $clsSqlCirculation->GetData(); }
+
+			//Gridデータ表示
+			if(count($arrRet) > 0)
+			{
+				if(count($arrRet) == 1000) { $this->view->ErrMsg = $clsComConst::ERR_MSG_COUNT_OVER; }
+			 	$this->view->arrdata = json_encode($arrRet);
+			}
+			else { $this->view->arrdata = json_encode(array()); }
+		}
+
+		//設定処理
+		$this->view->Type = $clsCommon->ConverDisp($type);
+		$this->view->Report = $clsCommon->ConverDisp($report);
+		$this->view->ToYmd = $clsCommon->ConverDisp($toymd);
+		$this->view->FromYmd = $clsCommon->ConverDisp($fromymd);
+		$this->view->Token = $clsCommon->ConverDisp($token);
 	}
 
 	/**

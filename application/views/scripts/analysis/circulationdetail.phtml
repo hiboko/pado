@@ -1,81 +1,71 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta http-equiv="Content-Style-Type" content="text/css" />
-<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-<meta name="keywords" content="新基幹サブシステム,分析,部数表詳細" />
-<meta name="description" content="新基幹サブシステム 部数表詳細指定" />
+<meta name="keywords" content="ぱど基幹サブシステム,分析,部数表詳細" />
+<meta name="description" content="ぱど基幹サブシステム 部数表詳細" />
 <link rel="stylesheet" href="/html/css/common.css" type="text/css" />
 <link rel="stylesheet" href="/html/css/style.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/jquery-ui-1.10.0.custom.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/ui.jqgrid.css" type="text/css" />
 <script type="text/javascript" src="/html/js/jquery.js"></script>
-<script type="text/javascript" src="/html/js/common.js"></script>
-
-<!-- ** Javascript ** --> 
-<link rel="stylesheet" type="text/css" href="/html/css/jquery-ui-1.10.0.custom.css" />
-<link rel="stylesheet" type="text/css" href="/html/css/ui.jqgrid.css" />
-<script type="text/javascript" src="/html/js/jquery.jqGrid.min.js" ></script>
-<script type="text/javascript" src="/html/js/jquery.jqGrid.src.js"></script>
 <script type="text/javascript" src="/html/js/jquery-ui-1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="/html/js/jquery.jqGrid.min.js"></script>
 <script type="text/javascript" src="/html/js/i18n/grid.locale-ja.js"></script>
 <script type="text/javascript" src="/html/js/i18n/jquery.ui.datepicker-ja.js"></script>
-
-<title>新基幹サブシステム 部数表詳細</title>
+<script type="text/javascript" src="/html/js/common.js"></script>
+<script type="text/javascript" src="/html/js/blockUI.js"></script>
 
 <script type="text/javascript">
 
-$(document).ready(function() {
-	var arrdata = [
-	{base:"首都圏", block:"A", area:"101:緑区", zone:"01", town:"01:子安通1丁目", isLeaf:false, expanded:false},
-	{base:"首都圏", block:"A", area:"101:緑区", zone:"01", town:"02:子安通2丁目", isLeaf:false, expanded:false},
-	{base:"首都圏", block:"A", area:"101:緑区", zone:"01", town:"03:子安通3丁目", isLeaf:false, expanded:false},
-	{base:"首都圏", block:"A", area:"101:緑区", zone:"02", town:"01:亀住町・浦島町1丁目", isLeaf:false, expanded:false},
-	{base:"首都圏", block:"A", area:"101:緑区", zone:"02", town:"02:亀住町・浦島町2丁目", isLeaf:false, expanded:false},
-	{base:"首都圏", block:"A", area:"101:緑区", zone:"02", town:"03:亀住町・浦島町3丁目", isLeaf:false, expanded:false},
-	{base:"首都圏", block:"A", area:"102:青葉", zone:"01", town:"01:子安通1丁目", isLeaf:false, expanded:false},
-	{base:"首都圏", block:"A", area:"102:青葉", zone:"01", town:"02:子安通2丁目", isLeaf:false, expanded:false},
-	{base:"首都圏", block:"A", area:"102:青葉", zone:"02", town:"01:亀住町・浦島町1丁目"},
-	{base:"首都圏", block:"A", area:"102:青葉", zone:"02", town:"02:亀住町・浦島町2丁目"},
-	{base:"首都圏", block:"B", area:"103:宮前", zone:"01", town:"01:子安通1丁目"},
-	{base:"首都圏", block:"B", area:"103:宮前", zone:"01", town:"02:子安通2丁目"},
-	{base:"首都圏", block:"B", area:"103:宮前", zone:"02", town:"01:亀住町・浦島町1丁目"},
-	{base:"首都圏", block:"B", area:"103:宮前", zone:"02", town:"02:亀住町・浦島町2丁目"},
-	{base:"福岡", block:"A", area:"103:宮前", zone:"01", town:"01:子安通1丁目"},
-	{base:"福岡", block:"A", area:"103:宮前", zone:"01", town:"02:子安通2丁目"},
-	{base:"福岡", block:"A", area:"103:宮前", zone:"02", town:"01:亀住町・浦島町1丁目"},
-	{base:"福岡", block:"A", area:"103:宮前", zone:"02", town:"02:亀住町・浦島町2丁目"},
-	{base:"神奈川", block:"A", area:"103:宮前", zone:"01", town:"01:子安通1丁目"},
-	{base:"神奈川", block:"A", area:"103:宮前", zone:"01", town:"02:子安通2丁目"},
-	{base:"神奈川", block:"A", area:"103:宮前", zone:"02", town:"01:亀住町・浦島町1丁目"},
-	{base:"神奈川", block:"A", area:"103:宮前", zone:"02", town:"02:亀住町・浦島町2丁目"},
-	];
-	
+$(function()
+{
+	var grid = JSON.stringify(<?= $this->arrdata ?>);
+	document.frmMain.grid.value = grid;
+});
+
+</script>
+
+<script type="text/javascript">
+
+jQuery(document).ready(function()
+{
+	var arrdata = <?= $this->arrdata ?>;
+
 	$('#list').jqGrid({
 		data     : arrdata,
 		datatype : 'local',
-		colNames : [ '流通拠点', 'ブロック', 'エリア','区域','地域・町名'],
+		colNames : [ '流通拠点', 'ブロック', 'エリア', '拠点コード', 'ブロックコード', 'エリアコード'],
 		colModel : [ 
-			{ name : 'base' , index : 'base', width:100},
-			{ name : 'block', index : 'block',width:50},
-			{ name : 'area' , index : 'area', width:100},
-			{ name : 'zone' , index : 'zone', width:50}, 
-			{ name : 'town' , index : 'town', width:300}, 
+			{ name : 'base' , index : 'base', width:80},
+			{ name : 'block', index : 'block',width:80, align:'center'},
+			{ name : 'area' , index : 'area', width:150},
+			{ name : 'kyocd' , index : 'kyocd' , hidden: true , width:30, align:'center'},
+			{ name : 'blcd'  , index : 'blcd'  , hidden: true , width:30, align:'center'},
+			{ name : 'areacd', index : 'areacd', hidden: true , width:30, align:'center'}
 		],
-		caption		: '部数表詳細指定',
-		height		: 'auto', //データの量に合わせた表の高さにする
-		
+		caption		: '部数表詳細',
+		gridview    : true,
+		rowNum      : 2000,
+		sortname    : 'base,block',
+		sortorder   : "asc",
+		height		: 480,
+		width       : 'auto',
+		viewrecords : true,
+
 		treeGrid     : true,
 		treeGridModel: 'nested',
 		treedatatype : 'local',
 		multiselect  : true,
-		scrollrows   : true,
-		
+		scrollrows   : false,
+		ongroupFieldClick: function(id){ alert("ああ"); },
 		grouping	 : true,	//グルーピングを使用する
 		groupingView : {		//グルーピングの設定
-			groupField		 : ['base','block','area','zone'], //グループ化したい項目
+			groupField		 : ['base','block'], //グループ化したい項目
 			groupText		 : ['<b>{0}</b>'], //グループ化した項目の表示名
 			groupOrder 		 : ['asc'], //昇順
+			groupColumnShow  : [true],
 			groupSummary	 : [false]  //サマリータイプを使用する
 		}
 	});
@@ -83,13 +73,35 @@ $(document).ready(function() {
 
 </script>
 
+
+<title>ぱど基幹サブシステム 部数表詳細</title>
+
 </head>
 <body>
-	<form  method="post" action="./confirm.php" enctype="multipart/form-data">
-		<!-- #formAreaInner start -->
-		<div id="formAreaInner" clearfix">
-			<table id="list"><tr><td></td></tr></table>
+
+	<form name="frmMain" action="circulationdetail" method="post">
+		<input type="hidden" name="type" value="<?= $this->Type ?>">
+		<input type="hidden" name="report" value="<?= $this->Report ?>">
+		<input type="hidden" name="toymd" value="<?= $this->ToYmd ?>">
+		<input type="hidden" name="fromymd" value="<?= $this->FromYmd ?>">
+		<input type="hidden" name="token" value="<?= $this->Token ?>">
+		<input type="hidden" name="grid">
+
+		<div style="margin-top: 10px; margin-left: 10px;">
+			<p><span class="required"><?= $this->ErrMsg ?></span></p>
+			<table id="list"></table>
+			<br>
+			<table width="350">
+				<tr align="right">
+					<td>
+						<input type="submit" name="btnPrint" id="btnPrint" class="button" value="出力" />
+						<input type="button" name="btnCancel" id="btnCancel" class="button" value="キャンセル" onclick="window.close(); return false;" />
+					</td>
+				</tr>
+			</table>
+			<br>
 		</div>
 	</form>
+
 </body>
 </html>

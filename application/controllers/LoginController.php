@@ -68,7 +68,8 @@ class LoginController extends Zend_Controller_Action
 			$arrErr = array();
 			if($clsParamCheck->ChkMust($kcd, "会社コード")) { $clsParamCheck->ChkNumeric($kcd, "会社コード"); }
 			if($clsParamCheck->ChkMust($id, "ログインID")) { $clsParamCheck->ChkNumeric($id, "ログインID"); }
-			if($clsParamCheck->ChkMust($pass, "パスワード")) { $clsParamCheck->ChkStr($pass, "パスワード"); }
+			//if($clsParamCheck->ChkMust($pass, "パスワード")) { $clsParamCheck->ChkStr($pass, "パスワード"); }
+			$clsParamCheck->ChkMust($pass, "パスワード");
 			$arrErr = $clsParamCheck->GetErrMsg();
 
 			if(count($arrErr) > 0)
@@ -93,7 +94,7 @@ class LoginController extends Zend_Controller_Action
 					{
 						//セッション情報設定
 						Zend_Session::start();
-						$session = new Zend_Session_Namespace('user');
+						$session = new Zend_Session_Namespace('padouser');
 						$session->kcd = $arrRet[0]["KAISHA_CD"];
 						$session->scd = $arrRet[0]["SHAIN_CD"];
 						$session->snm = $arrRet[0]["SHAIN_NM"];

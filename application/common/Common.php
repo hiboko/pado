@@ -75,22 +75,50 @@ class Common
 	}
 
 	/**
-	 * ドロップダウンリスト配列生成処理
+	 * ドロップダウンリスト生成処理
+	 * 
+	 * @param $inputName      名称
+	 * @param $srcArray       リスト配列情報
+	 * @param $selectedIndex  選択行
+	 * @param $initFlg        初期フラグ(true:0データを先頭に追加する, false:0データを追加しない)
+	 * @param $submitFlg      サブミットフラグ(true:サブミットコード仕込む, false:サブミットコード仕込まない)
+	 * @param $cdFlg          コードフラグ(true:コード情報を表示する, false:コード情報を表示しない)
+	 * @return true:成功、false:失敗
+	 */
+	public function ConverArrDropdownList($inputName, $srcArray, $selectedIndex, $initFlg = true, $submitFlg = true, $cdFlg = true)
+	{
+		if($submitFlg) { $temphtml = '<select name="'. htmlspecialchars($inputName). '" onchange="this.form.submit();" >'. "\n"; }
+		else { $temphtml = '<select name="'. htmlspecialchars($inputName). '" >'. "\n"; }
+
+		if($initFlg) { $temphtml .= '<option value="0"></option>'. "\n"; }
+
+		foreach ($srcArray as $row)
+		{
+			if ($selectedIndex == $row["cd"]) { $selectedText = ' selected="selected"'; } else { $selectedText = ''; }
+			if($cdFlg) { $temphtml .= '<option value="'. htmlspecialchars($row["cd"]). '"'. $selectedText. '>'. htmlspecialchars($row["cd"]) . ":" . htmlspecialchars($row["name"]). '</option>'. "\n"; }
+			else { $temphtml .= '<option value="'. htmlspecialchars($row["cd"]). '"'. $selectedText. '>'. htmlspecialchars($row["name"]). '</option>'. "\n"; }
+		}
+		$temphtml .= '</select>'. "\n";
+
+		return $temphtml;
+	}
+
+	/**
+	 * マルチセレクトリスト生成処理
 	 * 
 	 * @param $inputName      名称
 	 * @param $srcArray       リスト配列情報
 	 * @param $selectedIndex  選択行
 	 * @return true:成功、false:失敗
 	 */
-	public function ConverArrDropdownList($inputName, $srcArray, $selectedIndex)
+	public function ConverMultiSelectList($inputName, $srcArray, $selectedIndex)
 	{
-		$temphtml = '<select name="'. htmlspecialchars($inputName). '" onchange="this.form.submit();" >'. "\n";
-		$temphtml .= '<option value="0"></option>'. "\n";
+		$temphtml = '<select name="'. htmlspecialchars($inputName). '" multiple="multiple" onchange="ChangeSelect(); this.form.submit();">'. "\n";
 
 		foreach ($srcArray as $row)
 		{
-			if ($selectedIndex == $row["cd"]) { $selectedText = ' selected="selected"'; }
-			else { $selectedText = ''; }
+			$selectedText = '';
+			if(isset($selectedIndex)){ if(strstr($selectedIndex, $row["cd"])) { $selectedText = ' selected="selected"'; }}
 			$temphtml .= '<option value="'. htmlspecialchars($row["cd"]). '"'. $selectedText. '>'. htmlspecialchars($row["cd"]) . ":" . htmlspecialchars($row["name"]). '</option>'. "\n";
 		}
 		$temphtml .= '</select>'. "\n";
@@ -119,7 +147,7 @@ class Common
 		if(strstr($url, "?")) { $url = substr($url, 0, $of=strpos($url,"?")); }
 
 		//セッションチェック
-		$session = new Zend_Session_Namespace('user');
+		$session = new Zend_Session_Namespace('padouser');
 		if((isset($session->scd) || $session->scd != null) &&
 		   (isset($session->token) || $session->token != null) && $session->token == $token) { return true; }
 		else
@@ -152,7 +180,7 @@ class Common
 	 */
 	public function GetSession()
 	{
-		$session = new Zend_Session_Namespace('user');
+		$session = new Zend_Session_Namespace('padouser');
 		return $session;
 	}
 

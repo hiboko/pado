@@ -1,32 +1,65 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<meta http-equiv="Content-Style-Type" content="text/css" />
-<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-<meta name="keywords" content="新基幹サブシステム,分析,部数表" />
-<meta name="description" content="新基幹サブシステム 部数表出力" />
+<meta name="keywords" content="ぱど基幹サブシステム,分析,部数表" />
+<meta name="description" content="ぱど基幹サブシステム 部数表" />
 <link rel="stylesheet" href="/html/css/common.css" type="text/css" />
 <link rel="stylesheet" href="/html/css/style.css" type="text/css" />
-<link rel="stylesheet" href="/html/css/jquery-ui-1.10.0.custom.css" >
+<link rel="stylesheet" href="/html/css/jquery-ui-1.10.0.custom.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/ui.jqgrid.css" type="text/css" />
 <script type="text/javascript" src="/html/js/jquery.js"></script>
+<script type="text/javascript" src="/html/js/jquery-ui-1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="/html/js/jquery.jqGrid.min.js"></script>
+<script type="text/javascript" src="/html/js/i18n/grid.locale-ja.js"></script>
+<script type="text/javascript" src="/html/js/i18n/jquery.ui.datepicker-ja.js"></script>
 <script type="text/javascript" src="/html/js/common.js"></script>
-<script type="text/javascript" src="/html/js/jquery-ui-1.10.0.custom.js"></script>
-
-<title>新基幹サブシステム 部数表</title>
+<script type="text/javascript" src="/html/js/blockUI.js"></script>
 
 <script language=javascript>
-<!--
 
-// Window Open sub window
-function btnDetail_onclick() {
-  var child = "http://localhost/PADO/analysis/circulationdetail/"; 
-  subwin = window.open(child,"subWin","width=700,height=500,scrollbars=yes");
+function ChangeSelect()
+{
+	var rp = "";
+
+	for (i = 0; i < document.frmMain.report.options.length; i++)
+	{
+		if (document.frmMain.report.options[i].selected)
+		{ rp += document.frmMain.report.options[i].value + ","; }
+	}
+
+	rp = rp.substr(0,rp.length -1);
+	document.frmMain.arrrpt.value = rp;
 }
 
-//-->
+function ChangeRadio()
+{
+	document.frmMain.arrrpt.value = "";
+}
+
+function btnDetail_onclick()
+{
+	var type = "<?= $this->Type ?>";
+	var report = "<?= $this->ArrRpt ?>";
+	var ymd = document.frmMain.between.value;
+	var toymd = "";
+	var fromymd = "";
+
+	if(type == "" || report == "" || ymd == "") { alert("必須刻目を選択して下さい"); }
+	else
+	{
+		var arrymd = ymd.split("～");
+		if(arrymd.length > 0){ toymd = arrymd[0]; }
+		if(arrymd.length > 1){ fromymd = arrymd[1]; }
+		var child = "<?= $this->circulation_ditail_url ?>?token=<?= $this->Token ?>&type=" + type + "&report=" + report + "&toymd=" + toymd + "&fromymd=" + fromymd;
+		window.open(child,"clientchild","width=390,height=650,scrollbars=yes");
+	}
+}
+
 </script>
+
+<title>ぱど基幹サブシステム 部数表</title>
 
 </head>
 <body>
@@ -43,72 +76,65 @@ function btnDetail_onclick() {
 	<!-- #contents start -->
 	<div id="contents">
 
-		<!-- #submenu include -->
-		<? @include("html/include/submenu.php"); ?>
-
 		<!-- #main start -->
-		<div id="main2">
+		<div id="main">
 			<h2>部数表</h2>
 			<p>ブロック表、地区表、担当地区表を出力する</p>
-			<ul class="button-group">
-				<li><button class="large button">ブロック表(Excel)</button></li>
-				<li><button class="large button">地区表(Excel)</button></li>
-				<li><button class="large button">担当地区表(CSV)</button></li>
-			</ul><br>
-			<form method="post" action="./confirm.php" enctype="multipart/form-data">
-				<input type="hidden" name="form" value="1" />
-				<!-- #formAreaInner start -->
-				<div id="formAreaInner" clearfix">
+
+			<!-- #frmMain start -->
+			<form name="frmMain" action="circulation" method="post">
+				<input type="hidden" id="token" name="token" value="<?= $this->Token ?>">
+				<input type="hidden" id="type" name="type" value="<?= $this->Type ?>">
+				<input type="hidden" id="arrrpt" name="arrrpt" value="<?= $this->ArrRpt ?>">
+
+				<!-- #formSubArea start -->
+				<div id="formSubArea" style="width:620px;">
 					<table>
 						<tr>
-							<th width="100">掲載版<span class="required">(必須)</span></th>
+							<th width="100">種別</th>
 							<td>
-								<select id="select" multiple="multiple" >
-									<option value="0">011:首都圏直営版</option>
-									<option value="1">015:京阪北版</option>
-									<option value="2">016:北摂東版</option>
-								</select>
+								<input type="radio" name="type" value="1" onChange="ChangeRadio(); this.form.submit();" <?php if($this->Type == 1){echo 'checked';}?>>ブロック表(EXCEL) 
+								<input type="radio" name="type" value="2" onChange="ChangeRadio(); this.form.submit();" <?php if($this->Type == 2){echo 'checked';}?>>地区表(EXCEL) 
+								<input type="radio" name="type" value="3" onChange="ChangeRadio(); this.form.submit();" <?php if($this->Type == 3){echo 'checked';}?>>担当地区表(CSV) 
 							</td>
 						</tr>
 						<tr>
+							<th>掲載版<span class="required">(必須)</span></th>
+							<td><?= $this->report ?></td>
+						</tr>
+						<tr>
 							<th>期間<span class="required">(必須)</span></th>
-							<td>
-								<input type="hidden" id="selectItemsSave" />
-								<select id="select">
-									<option value="0">2013/02/01～</option>
-								</select>
-							</td>
+							<td><?= $this->between ?></td>
 						</tr>
 						<tr><th colspan="2">お知らせ</th></tr>
 						<tr>
 							<td colspan="2">
-								<textarea disabled cols="77" id="txtOther"></textarea>
+								<textarea class="readonly" readonly cols="77" name="inform" style="width:600px;"><?= $this->Inform ?></textarea>
 							</td>
 						</tr>
 					</table>
+					<div id="formBtnArea" class="formBtnArea" style="width:620px;">
+						<table width="620">
+							<tr>
+								<td>
+									<input class="button" type="button" name="btnDetail" id="btnDetail" value="詳細" onclick="btnDetail_onclick()" />
+									<input class="button" type="submit" name="btnCsv" id="btnCsv" value="出力" >
+								</td>
+							</tr>
+						</table>
+					</div>
 				</div>
-				<!-- #formAreaInner end -->
+				<!-- #formSubArea end -->
 
-				<div id="formBtnArea" class="FormBtnArea">
-					<table width="1100">
-						<tr>
-							<td>
-								<input type="button" id="btnDetail" class="button" value="詳細" onclick="btnDetail_onclick()" />
-								<input type="button" class="button" value="出力" onclick="" />
-								<!--<input type="button" value="参照" onclick="void(this.form.submit());return false" class="ConfBtn"/>
-								<input type="image" onclick="void(this.form.submit());return false" alt="" class="ConfBtn" src="../../html/image/confirm.png" />-->
-							</td>
-						</tr>
-					</table>
-				</div>
-				</br>
 			</form>
+			<!-- #frmMain end -->
+
 		</div>
 		<!-- #main end -->
 
 	</div>
 	<!-- #contents end -->
-	
+
 	<!-- #header include -->
 	<? @include("html/include/footer.inc"); ?>
 

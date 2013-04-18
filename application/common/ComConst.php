@@ -28,6 +28,10 @@ class ComConst
 	const CDIALOG_CLIENT_URL = "http://kikansubtest.pado.jp:8081/commondialog/client/";
 	//コード情報検索
 	const CDIALOG_CODE_URL = "http://kikansubtest.pado.jp:8081/commondialog/code/";
+	//部数表
+	const ANALYSIS_CIRCULATION_URL = "http://kikansubtest.pado.jp:8081/analysis/circulation/";
+	//部数表詳細
+	const ANALYSIS_CIRCULATION_DITAIL_URL = "http://kikansubtest.pado.jp:8081/analysis/circulationdetail/";
 
 	/**********************************************************************************************
 	 * DB
@@ -38,6 +42,8 @@ class ComConst
 	const DB_VMTEST02 = "VMTEST02";
 	//DB_KIKAN
 	const DB_KIKAN = "00kikandb01";
+	//DB_KIKAN_SUB
+	const DB_KIKAN_SUB = "kikansubdb";
 
 	/**********************************************************************************************
 	 * ログ
@@ -72,6 +78,11 @@ class ComConst
 	const CODE_CLAIM_EMPLOYEE = 2;
 	//顧客検索 営業担当者
 	const CODE_CLIENT_EMPLOYEE = 3;
+
+	//部数表EXCEL出力コード
+	const CODE_CIRCULATION_EXCEL = 'BUSUHYO_XLS_KEISAIHAN_CD';
+	//部数表CSV出力コード
+	const CODE_CIRCULATION_CSV = 'ORKM_KEISAIHAN_CD';
 
 	//ダイアログコード
 	const CODE_DIALOG = 1;

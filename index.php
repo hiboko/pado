@@ -14,6 +14,9 @@ set_include_path(implode(PATH_SEPARATOR, array(
     get_include_path(),
 )));
 
+include dirname(__FILE__) . "/library/PHPExcel.php";
+include dirname(__FILE__) . "/library/PHPExcel/IOFactory.php";
+
 /** Zend_Application */
 require_once 'Zend/Application.php';
 
