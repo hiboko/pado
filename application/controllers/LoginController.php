@@ -52,7 +52,7 @@ class LoginController extends Zend_Controller_Action
 		$count = $clsCommon->SetParam($this->getRequest(), "count");			//カウンタ
 
 		//ブラウザチェック
-		if(!$clsCommon->ChkBrowser()) { throw new Exception("", $clsComConst::ERR_CODE_403); }
+		if(!$clsCommon->ChkBrowser()) { throw new Exception("", $clsComConst::ERR_CODE_405); }
 
 		//パラメータチェック
 		if(isset($url) && !empty($url)) { $clsParamCheck->ChkUrl($url, "とび先URL"); }

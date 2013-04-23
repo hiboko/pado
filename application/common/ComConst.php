@@ -102,6 +102,8 @@ class ComConst
 	const ERR_CODE_403 = 403;
 	//NOT FOUNDエラー
 	const ERR_CODE_404 = 404;
+	//ブラウザエラー
+	const ERR_CODE_404 = 405;
 	//アプリケーションエラー
 	const ERR_CODE_500 = 500;
 

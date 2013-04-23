@@ -76,6 +76,11 @@ class ErrorController extends Zend_Controller_Action
 						$priority = Zend_Log::NOTICE;
 						$this->view->message = 'ページが見つかりませんでした。';
 						break;
+					case 405:
+						$this->getResponse()->setHttpResponseCode(405);
+						$priority = Zend_Log::NOTICE;
+						$this->view->message = 'このブラウザでは対応していません。';
+						break;
 					default:
 						// application error
 						$this->getResponse()->setHttpResponseCode(500);
