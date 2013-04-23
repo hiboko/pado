@@ -103,7 +103,7 @@ class ComConst
 	//NOT FOUNDエラー
 	const ERR_CODE_404 = 404;
 	//ブラウザエラー
-	const ERR_CODE_404 = 405;
+	const ERR_CODE_405 = 405;
 	//アプリケーションエラー
 	const ERR_CODE_500 = 500;
 
