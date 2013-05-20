@@ -92,12 +92,21 @@ class LoginController extends Zend_Controller_Action
 					//パスワード有効期限チェック
 					if($arrRet[0]["LAST_PWD_CHG_DATE"] <= $clsComConst::ERR_PWD_LIMIT_DAY)
 					{
+						//パラメータ生成
+						$arrPram = array("kcd" => $arrRet[0]["KAISHA_CD"], "id" => $arrRet[0]["SHAIN_CD"]);
+
+						//ロール情報検索
+						$clsSqlMstShain = new SqlMstShain();
+						$blnRet = $clsSqlMstShain->SelectMstSyainRoll($clsComConst::DB_KIKAN_SUB , $arrPram);
+						if($blnRet) { $arrMenu = $clsSqlMstShain->GetMenuID(); }
+
 						//セッション情報設定
 						Zend_Session::start();
 						$session = new Zend_Session_Namespace('padouser');
 						$session->kcd = $arrRet[0]["KAISHA_CD"];
 						$session->scd = $arrRet[0]["SHAIN_CD"];
 						$session->snm = $arrRet[0]["SHAIN_NM"];
+						$session->menu = $arrMenu;
 						$session->token = md5(uniqid(mt_rand(),true));
 
 						//有効期間設定

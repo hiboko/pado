@@ -15,6 +15,11 @@
 class AnalysisController extends Zend_Controller_Action
 {
 	/**
+	 * Excel
+	 */
+	public $clsComExcel;
+
+	/**
 	* 初期処理
 	* 
 	* @param
@@ -35,30 +40,77 @@ class AnalysisController extends Zend_Controller_Action
 	{
 		//ファイル読み込み
 		require_once dirname(__FILE__) . "/../models/SqlCirculation.php";
+		require_once dirname(__FILE__) . "/../models/SqlMstSystem.php";
 
 		//初期処理
 		$clsCommon = new Common();
 		$clsComConst = new ComConst();
 		$clsParamCheck = new ParamCheck();
 		$clsSqlCirculation = new SqlCirculation();
+		$clsSqlMstSystem = new SqlMstSystem();
 		$arrErr = array();
 		$arrPram = array();
 		$arrCd = "";
 
 		//パラメータ設定
 		$type = $clsCommon->SetParam($this->getRequest(), "type");				//種別
-		$arrrpt = $clsCommon->SetParam($this->getRequest(), "arrrpt");			//掲載版コード
+		$report = $clsCommon->SetParam($this->getRequest(), "report");			//掲載版コード
 		$between = $clsCommon->SetParam($this->getRequest(), "between");		//期間
+		$change = $clsCommon->SetParam($this->getRequest(), "change");			//チェンジイベントフラグ
+		$print = $clsCommon->SetParam($this->getRequest(), "print");			//出力イベントフラグ
 		$token = $clsCommon->SetParam($this->getRequest(), "token");
 
 		//アクセスチェック
-		if(!$clsCommon->ChkAccess($token)) { throw new Exception("", $clsComConst::ERR_CODE_403); }
+		if(!$clsCommon->ChkAccess($token, "", "", $clsComConst::PGID_ANALYSIS_CIRCULATION))
+		{ throw new Exception("", $clsComConst::ERR_CODE_403); }
+
+		//パラメータチェック
+		if(isset($report)) { if(!$clsParamCheck->ChkNumeric($report, "掲載版コード"))
+		{ throw new Exception("掲載版コードが不正です。", $clsComConst::ERR_CODE_400); break; }}
 
 		//セッション情報取得
 		$session = $clsCommon->GetSession();
 
+		//出力ボタン押下時
+		if($print == 1)
+		{
+			//パラメーターチェック
+			$elements = split("～", $between);
+
+			foreach( $elements as $val )
+			{
+				if(!empty($val))
+				{
+					if(!$clsParamCheck->ChkDate($val, "期間"))
+					{ throw new Exception("期間が不正です。", $clsComConst::ERR_CODE_400); break; }
+				}
+			}
+			if(isset($elements[0]) && !empty($elements[0])) { $fromymd = $elements[0]; }
+			if(isset($elements[1]) && !empty($elements[1])) { $toymd = $elements[1]; }
+
+			$arrPram = array("kcd" => $session->kcd, "report" => $report, "fromymd" => $fromymd, "toymd" => $toymd);
+
+			switch($type)
+			{
+				case 1:
+					//ブロック表出力処理
+					if(!self::printBlockExcel($arrPram)) { $this->view->ErrMsg = $clsComConst::ERR_MSG_CSV; }
+				case 2:
+					//地区表
+					if(!self::printAreaExcel($arrPram)) { $this->view->ErrMsg = $clsComConst::ERR_MSG_CSV; }
+					break;
+				case 3:
+					//担当地区表(CSV)
+					if(!self::printAreaCsv($arrPram)) { $this->view->ErrMsg = $clsComConst::ERR_MSG_CSV; }
+					break;
+				default:
+					throw new Exception("種別が不正です。", $clsComConst::ERR_CODE_400);
+					break;
+			}
+		}
+
 		//初期値設定
-		if(!isset($type)) { $type = 1; }
+		if(!isset($type)) { $type = 1; $change = 1; }
 
 		//種別ラジオボタン
 		switch($type)
@@ -80,24 +132,16 @@ class AnalysisController extends Zend_Controller_Action
 		//部数表掲載版情報検索
 		$arrPram = array("kcd" => $session->kcd, "type" => $arrCd);
 		$blnRet = $clsSqlCirculation->SelectCirculationKeisaihan($clsComConst::DB_KIKAN , $arrPram);
-		if($blnRet) { $arrRet = $clsSqlCirculation->GetData(); if(count($arrRet) > 0) { $arrrpt =  $arrRet[0]["cd"]; }}
-		$this->view->report = $clsCommon->ConverMultiSelectList("report", $arrRet, $arrrpt, false, false, false);
+		if($blnRet) { $arrRet = $clsSqlCirculation->GetData();
+		if(count($arrRet) > 0){ if(!isset($report) || $change == 1) { $report =  $arrRet[0]["cd"]; } }}
+		$this->view->report = $clsCommon->ConverArrDropdownList("report", $arrRet, $report, false);
 
 		//掲載版選択処理
-		if(isset($arrrpt))
+		if(isset($report))
 		{
-			$elements = split(",", $arrrpt);
-
-			//パラメータチェック
-			foreach( $elements as $val )
-			{
-				if(!$clsParamCheck->ChkNumeric($val, "掲載版コード"))
-				{ throw new Exception("掲載版コードが不正です。", $clsComConst::ERR_CODE_400); break; }
-			}
-
 			//部数表期間情報検索
 			$arrRet = array();
-			$arrPram = array("kcd" => $session->kcd, "arrcd" => $arrrpt);
+			$arrPram = array("kcd" => $session->kcd, "report" => $report);
 			$blnRet = $clsSqlCirculation->SelectCirculationYmd($clsComConst::DB_KIKAN , $arrPram);
 			if($blnRet) { $arrRet = $clsSqlCirculation->GetData(); }
 
@@ -123,15 +167,15 @@ class AnalysisController extends Zend_Controller_Action
 
 		//お知らせ情報検索
 		$arrRet = array();
-		$arrPram = array("kcd" => $session->kcd);
-		$blnRet = $clsSqlCirculation->SelectCirculationMsg($clsComConst::DB_KIKAN_SUB , $arrPram);
-		if($blnRet) { $arrRet = $clsSqlCirculation->GetData(); }
+		$arrPram = array("kcd" => $session->kcd, "entry" => "BUSUUHYOU", "section" => "MESSAGE");
+		$blnRet = $clsSqlMstSystem->SelectSystemMsg($clsComConst::DB_KIKAN_SUB , $arrPram);
+		if($blnRet) { $arrRet = $clsSqlMstSystem->GetData(); }
 		if(isset($arrRet[0]["val"])) { $this->view->Inform = $clsCommon->ConverDisp($arrRet[0]["val"]); }
 
 		//設定処理
 		$this->view->circulation_ditail_url = $clsComConst::ANALYSIS_CIRCULATION_DITAIL_URL;
 		$this->view->Type = $clsCommon->ConverDisp($type);
-		$this->view->ArrRpt = $clsCommon->ConverDisp($arrrpt);
+		$this->view->Report = $clsCommon->ConverDisp($report);
 		$this->view->Token = $clsCommon->ConverDisp($token);
 	}
 
@@ -157,13 +201,18 @@ class AnalysisController extends Zend_Controller_Action
 		//パラメータ設定
 		$type = $clsCommon->SetParam($this->getRequest(), "type");				//種別
 		$report = $clsCommon->SetParam($this->getRequest(), "report");			//掲載版コード
-		$toymd = $clsCommon->SetParam($this->getRequest(), "toymd");			//期間(開始)
-		$fromymd = $clsCommon->SetParam($this->getRequest(), "fromymd");		//期間(終了)
+		$fromymd = $clsCommon->SetParam($this->getRequest(), "fromymd");		//期間(開始)
+		$toymd = $clsCommon->SetParam($this->getRequest(), "toymd");			//期間(終了)
 		$grid = $clsCommon->SetParam($this->getRequest(), "grid");				//Gridデータ
+		$check = $clsCommon->SetParam($this->getRequest(), "check");			//Gridチェック行(配列)
+		$blcd = $clsCommon->SetParam($this->getRequest(), "blcd");				//ブロックコード(配列)
+		$areacd = $clsCommon->SetParam($this->getRequest(), "areacd");			//エリアコード(配列)
+		$click = $clsCommon->SetParam($this->getRequest(), "click");			//出力ボタンフラグ
 		$token = $clsCommon->SetParam($this->getRequest(), "token");
 
 		//アクセスチェック
-		if(!$clsCommon->ChkAccess($token, $clsComConst::CODE_DIALOG)) { throw new Exception("", $clsComConst::ERR_CODE_403); }
+		if(!$clsCommon->ChkAccess($token, "", $clsComConst::ANALYSIS_CIRCULATION_URL, $clsComConst::PGID_ANALYSIS_CIRCULATION))
+		{ throw new Exception("", $clsComConst::ERR_CODE_403); }
 
 		//パラメータチェック
 		if($clsParamCheck->ChkMust($type, "種別")) { $clsParamCheck->ChkNumeric($type, "種別"); }
@@ -172,8 +221,18 @@ class AnalysisController extends Zend_Controller_Action
 			$elements = split(",", $report);
 			foreach( $elements as $val ) { if(!$clsParamCheck->ChkNumeric($val, "掲載版コード")){ break; } }
 		}
-		if($clsParamCheck->ChkMust($toymd, "期間(開始)")) { $clsParamCheck->ChkDate($toymd, "期間(開始)"); }
-		if($clsParamCheck->ChkMust($fromymd, "期間(終了)")) { $clsParamCheck->ChkDate($fromymd, "期間(終了)"); }
+		if($clsParamCheck->ChkMust($fromymd, "期間(開始)")) { $clsParamCheck->ChkDate($fromymd, "期間(開始)"); }
+		if(isset($toymd)) { $clsParamCheck->ChkDate($toymd, "納期(終了)"); }
+		if(isset($blcd))
+		{
+			$elements = split(",", $blcd);
+			foreach( $elements as $val ) { if(!$clsParamCheck->ChkNumeric($val, "ブロックコード")){ break; } }
+		}
+		if(isset($areacd))
+		{
+			$elements = split(",", $areacd);
+			foreach( $elements as $val ) { if(!$clsParamCheck->ChkNumeric($val, "エリアコード")){ break; } }
+		}
 		$arrErr = $clsParamCheck->GetErrMsg();
 		foreach($arrErr as $value) { $msg .= $value; }
 
@@ -185,49 +244,52 @@ class AnalysisController extends Zend_Controller_Action
 		//Gridデータデコード
 		if(isset($grid)){ $grid = json_decode($grid); } else { $grid = array();}
 
+		//設定処理
+		$this->view->circulation_url = $clsComConst::ANALYSIS_CIRCULATION_URL;
+		$this->view->circulation_ditail_url = $clsComConst::ANALYSIS_CIRCULATION_DITAIL_URL;
+		$this->view->Type = $clsCommon->ConverDisp($type);
+		$this->view->Report = $clsCommon->ConverDisp($report);
+		$this->view->FromYmd = $clsCommon->ConverDisp($fromymd);
+		$this->view->ToYmd = $clsCommon->ConverDisp($toymd);
+		$this->view->Token = $clsCommon->ConverDisp($token);
+		$this->view->Check = $clsCommon->ConverDisp($check);
+
 		//出力ボタン押下時
-		if($_POST['btnPrint'])
+		if($click == 1 && isset($check))
 		{
+			//設定処理
+			$this->view->arrdata = json_encode($grid);
+
 			if(count($grid) > 0)
 			{
-				//帳票出力処理
-				//$clsCommon->SetCsv("受注履歴", $grid, "契約主コード, 契約主名, 掲載版, 掲載エリア, 掲載日, 掲載号, 商品名, サイズ, 受注番号, 売価, 制作費, 小計, 消費税, 総額, 粗利, 受注担当者コード, 受注担当者名, 入金予定日");
-				//exit();
-				
-				// 一時ファイル
-				$fileName = '/tmp/output.xls';
+				$arrPram = array("kcd" => $session->kcd, "report" => $report, "fromymd" => $fromymd, "toymd" => $toymd,
+				                 "blockcd" => $blockcd, "areacd" => $areacd);
 
-				$excel = new PHPExcel();
-				// シートの設定
-				$excel->setActiveSheetIndex(0);
-				$sheet = $excel->getActiveSheet();
-				$sheet->setTitle('sheet name');
-				// セルに値を入れる
-				$sheet->setCellValue('A1', 'あいうえお');
-				// Excel95 形式で出力
-				$writer = PHPExcel_IOFactory::createWriter($excel, 'Excel5');
-				$writer->save($fileName); // ホントはファイル出力せずにバイナリで返して欲しい
-
-				// ダウンロード
-				$this->getResponse()
-					->setHeader('Content-Type', 'application/vnd.ms-excel')
-					->setHeader('Content-Disposition', 'attachment; filename="test.xls"')
-					->appendBody(file_get_contents($fileName))
-					->sendResponse();
-				exit;
-
-
+				//種別ラジオボタン
+				switch($type)
+				{
+					case 1:
+						//ブロック表出力処理
+						if(!self::printBlockExcel($arrPram)) { $this->view->ErrMsg = $clsComConst::ERR_MSG_CSV; }
+					case 2:
+						//地域表出力処理
+						if(!self::printAreaExcel($arrPram)) { $this->view->ErrMsg = $clsComConst::ERR_MSG_CSV; }
+						break;
+					case 3:
+						//担当地区表(CSV)出力
+						if(!self::printAreaCsv($arrPram)) { $this->view->ErrMsg = $clsComConst::ERR_MSG_CSV; }
+						break;
+					default:
+						throw new Exception("種別が不正です。", $clsComConst::ERR_CODE_400);
+						break;
+				}
 			}
-			else
-			{
-				$this->view->ErrMsg = $clsComConst::ERR_MSG_CSV;
-				$this->view->arrdata = json_encode($grid);
-			}
+			else { $this->view->ErrMsg = $clsComConst::ERR_MSG_CSV; }
 		}
 		else
 		{
 			//部数表詳細情報検索
-			$arrPram = array("kcd" => $session->kcd, "arrcd" => $report, "toymd" => $toymd, "fromymd" => $fromymd);
+			$arrPram = array("kcd" => $session->kcd, "report" => $report, "fromymd" => $fromymd, "toymd" => $toymd);
 			$blnRet = $clsSqlCirculation->SelectCirculationDetail($clsComConst::DB_KIKAN , $arrPram);
 
 			if($blnRet) { $arrRet = $clsSqlCirculation->GetData(); }
@@ -236,17 +298,680 @@ class AnalysisController extends Zend_Controller_Action
 			if(count($arrRet) > 0)
 			{
 				if(count($arrRet) == 1000) { $this->view->ErrMsg = $clsComConst::ERR_MSG_COUNT_OVER; }
-			 	$this->view->arrdata = json_encode($arrRet);
+				$this->view->arrdata = json_encode($arrRet);
 			}
-			else { $this->view->arrdata = json_encode(array()); }
+			else { $this->view->arrdata = json_encode(array()); $this->view->ErrMsg = $clsComConst::ERR_MSG_CSV; }
 		}
+	}
 
-		//設定処理
-		$this->view->Type = $clsCommon->ConverDisp($type);
-		$this->view->Report = $clsCommon->ConverDisp($report);
-		$this->view->ToYmd = $clsCommon->ConverDisp($toymd);
-		$this->view->FromYmd = $clsCommon->ConverDisp($fromymd);
-		$this->view->Token = $clsCommon->ConverDisp($token);
+	/**
+	* ブロック表出力処理
+	* 
+	* @param  $arrParam  パラメータ配列(kcd  :会社コード, arrcd  :掲載版コード  [カンマ区切り], fromymd :期間[開始], 
+	*                                   blockcd:ブロックコード[カンマ区切り], areacd:エリアコード[カンマ区切り])
+	* @return true:データあり、false:データなし
+	*/
+    public function printBlockExcel($arrPram)
+    {
+		//ファイル読み込み
+		require_once dirname(__FILE__) . "/../models/SqlCirculation.php";
+		require_once dirname(__FILE__) . "/../models/SqlMstSystem.php";
+		require_once dirname(__FILE__) . "/../common/ComExcel.php";
+
+		//初期処理
+		$clsCommon = new Common();
+		$clsComConst = new ComConst();
+		$clsSqlCirculation = new SqlCirculation();
+		$clsSqlMstSystem = new SqlMstSystem();
+		$arrRet = array();
+		$arrRetMsg = array();
+
+		//アクセスログ出力処理
+		$backtraces = debug_backtrace();
+		$msg = $backtraces[1]['class'] . "：" . $backtraces[1]['function'] . "：" . "(" . $arrPram["kcd"] . ") " . $arrPram["scd"] . "：" . $arrPram["snm"] . " [BlockStartPrint]";
+		$logFile = $clsComConst::ACCESS_LOG_PATH. '/'. strtr('#DT#.log', array('#DT#'=>date('Ymd')));
+		$logger = new Zend_Log(new Zend_Log_Writer_Stream($logFile));
+		$logger->log($msg, Zend_Log::INFO);
+
+		//ブロック表情報検索
+		$blnRet = $clsSqlCirculation->SelectCirculationBlock($clsComConst::DB_KIKAN , $arrPram);
+
+		if($blnRet) { $arrRet = $clsSqlCirculation->GetData(); }
+
+		if(count($arrRet) > 0)
+		{
+			try
+			{
+				//フッターメッセージ検索
+				$fmsg = "";
+				$arrMstPram = array("kcd" => $arrPram["kcd"], "entry" => "BUSUUHYOU", "section" => "BLOCKHYOFOOTER");
+				$blnRet = $clsSqlMstSystem->SelectSystemMsg($clsComConst::DB_KIKAN_SUB , $arrMstPram);
+				if($blnRet) { $arrRetMsg = $clsSqlMstSystem->GetData(); }
+				if(isset($arrRetMsg[0]["val"])) { $fmsg = $clsCommon->ConverDisp($arrRetMsg[0]["val"]); }
+
+				//Excel生成クラス
+				$this->clsComExcel = new ComExcel($clsComConst::EXCEL_BLOCK_PATH, "block", "ブロック表");
+
+				//定数定義
+				$maxcol = 15;						//カラム数
+				$maxprow = 42;						//ページ最大行数
+				$maxdrow = 37;						//明細行最大行数
+				$startrow = 4;						//明細開始位置
+
+				//変数定義
+				$psrow = 1;							//ページ開始行
+				$perow = $maxprow;					//ページ終了行
+				$detailrow = $perow - 2;			//明細行
+				$datarow = $startrow;				//明細データ現在位置
+				$grouprow = $startrow;				//グループ開始行
+				$kyonm = $arrRet[0]["KYOTEN_NM"];	//拠点名
+				$groupcd = $arrRet[0]["AREA_CD"];	//グループエリアコード
+
+				//ヘッダーフッター情報設定
+				self::printBlockHeaderFooterExcel($arrPram, $kyonm, $psrow, $maxcol, $perow, $datarow, $detailrow, $fmsg);
+
+				for ($i = 0 ; $i < count($arrRet); $i++)
+				{
+					if((int)$arrRet[$i]["CNT"] > $maxdrow) { throw new Exception("出力データ不正", $clsComConst::ERR_CODE_500); }
+
+					if($groupcd != $arrRet[$i]["AREA_CD"])
+					{
+						//グループ小計情報出力処理
+						self::printBlockGroupExcel($groupcd, $datarow, $grouprow);
+
+						$groupcd = $arrRet[$i]["AREA_CD"];
+						$grouprow = $datarow + 1;
+						$datarow += 1;
+
+						if(($kyonm != $arrRet[$i]["KYOTEN_NM"]) || ((int)$arrRet[$i]["CNT"] > ($detailrow - $datarow)))
+						{
+							$psrow += $maxprow;					//ページ開始行
+							$perow += $maxprow;					//ページ終了行
+							$detailrow = $perow - 2;			//明細行
+							$datarow = $psrow + $startrow - 1;	//明細データ現在位置
+							$grouprow = $datarow;				//グループ開始行
+							$kyonm = $arrRet[$i]["KYOTEN_NM"];
+
+							//ヘッダーフッター情報設定
+							self::printBlockHeaderFooterExcel($arrPram, $kyonm, $psrow, $maxcol, $perow, $datarow, $detailrow, $fmsg);
+						}
+					}
+
+					//罫線
+					$this->clsComExcel->SetCellsLine('A' . $datarow, 'O' . $datarow, PHPExcel_Style_Border::BORDER_THIN, 4);
+
+					//太線
+					$this->clsComExcel->SetCellsLine('F' . $datarow, 'F' . $datarow, PHPExcel_Style_Border::BORDER_MEDIUM, 2);
+					$this->clsComExcel->SetCellsLine('F' . $datarow, 'F' . $datarow, PHPExcel_Style_Border::BORDER_MEDIUM, 3);
+
+					//フォントサイズ設定
+					$this->clsComExcel->SetCellsFontSize('A' . $datarow, 'E' . $datarow, false, 7);
+					$this->clsComExcel->SetCellsFontSize('F' . $datarow, 'F' . $datarow, false, 10);
+					$this->clsComExcel->SetCellsFontSize('G' . $datarow, 'K' . $datarow, false, 7);
+					$this->clsComExcel->SetCellsFontSize('L' . $datarow, 'O' . $datarow, false, 8);
+
+					//セル内縦配置設定
+					$this->clsComExcel->SetCellsVAlign('L' . $datarow, 'O' . $datarow, 1);
+
+					//フォーマット設定
+					$this->clsComExcel->SetCellsNumberFormat('E' . $datarow, 'F' . $datarow, '#,##0');
+					$this->clsComExcel->SetCellsNumberFormat('H' . $datarow, 'K' . $datarow, '#,##0');
+					$this->clsComExcel->SetCellsNumberFormat('G' . $datarow, 'G' . $datarow, '0.0%');
+
+					//折り返して全体を表示
+					$this->clsComExcel->SetCellsWrap('L'. $datarow, 'O'. $datarow, true);
+
+					//明細情報設定
+					$arrData = array('A' . $datarow => $arrRet[$i]["BLOCK_NM"],
+									 'D' . $datarow => '□',
+									 'E' . $datarow => '=IF(D'. $datarow . '="□","",F'. $datarow . ')',
+									 'F' . $datarow => '=SUM(H'. $datarow . ':K'. $datarow . ')',
+									 'G' . $datarow => '=IF(F'. $datarow . '=0,"",H'. $datarow . '/F'. $datarow . ')',
+									 'H' . $datarow => $arrRet[$i]["KODATE_SU"],
+									 'I' . $datarow => $arrRet[$i]["SHUGOU_SU"],
+									 'J' . $datarow => $arrRet[$i]["SONOTA_SU"],
+									 'K' . $datarow => $arrRet[$i]["SENBETU_FUKA_SU"],
+									 'L' . $datarow => $arrRet[$i]["KUIKI_NM1"],
+									 'M' . $datarow => $arrRet[$i]["KUIKI_NM2"],
+									 'N' . $datarow => $arrRet[$i]["KUIKI_NM3"],
+									 'O' . $datarow => $arrRet[$i]["KUIKI_NM4"]);
+
+					//データ書き込み
+					$this->clsComExcel->SetCellValue($arrData);
+
+					//明細情報設定
+					$arrData = array('B' . $datarow => $arrRet[$i]["AREA_CD"],
+									 'C' . $datarow => $arrRet[$i]["KUIKI_CD"]);
+
+					//データ書き込み
+					$this->clsComExcel->SetCellStringValue($arrData);
+					$datarow += 1;
+				}
+
+				//グループ小計情報出力処理
+				self::printBlockGroupExcel($groupcd, $datarow, $grouprow);
+
+				//アクセスログ出力処理
+				$backtraces = debug_backtrace();
+				$msg = $backtraces[1]['class'] . "：" . $backtraces[1]['function'] . "：" . "(" . $arrPram["kcd"] . ") " . $arrPram["scd"] . "：" . $arrPram["snm"] . " [BlockEndPrint]";
+				$logFile = $clsComConst::ACCESS_LOG_PATH. '/'. strtr('#DT#.log', array('#DT#'=>date('Ymd')));
+				$logger = new Zend_Log(new Zend_Log_Writer_Stream($logFile));
+				$logger->log($msg, Zend_Log::INFO);
+
+				//Excel出力(2003形式)
+				$this->clsComExcel->OutputExcel();
+				exit;
+			}
+			catch (Exception $e)
+			{
+				throw new Exception($e->getMessage(), $clsComConst::ERR_CODE_500);
+			}
+		}
+		else { return false; }
+
+		return true;
+	}
+
+	/**
+	* ブロックヘッダーフッター情報出力処理
+	* 
+	* @param  $arrParam  パラメータ配列(kcd  :会社コード, arrcd  :掲載版コード  [カンマ区切り], fromymd :期間[開始], 
+	*                                   blockcd:ブロックコード[カンマ区切り], areacd:エリアコード[カンマ区切り])
+	* @param  $kyonm      拠点名 
+	* @param  $psrow      ページ開始行
+	* @param  $maxcol     カラム数
+	* @param  $perow      ページ終了行
+	* @param  $datarow    明細データ現在位置
+	* @param  $detailrow  明細行
+	* @param  $fmsg       フッター表示メッセージ
+	* @return 
+	*/
+	public function printBlockHeaderFooterExcel($arrPram, $kyonm, $psrow, $maxcol, $perow, $datarow, $detailrow, $fmsg)
+	{
+		//--------------------
+		// ヘッダー情報設定
+		//--------------------
+		//行の高さ
+		$this->clsComExcel->SetRowHeight($psrow, 10.50);
+		$this->clsComExcel->SetRowHeight(($psrow + 1), 12);
+		$this->clsComExcel->SetRowHeight(($psrow + 2), 21.75);
+
+		//セルの結合
+		$this->clsComExcel->SetMergeCells('A'. ($psrow + 2), 'C'. ($psrow + 2));
+		$this->clsComExcel->SetMergeCells('D'. ($psrow + 2), 'E'. ($psrow + 2));
+		$this->clsComExcel->SetMergeCells('L'. ($psrow + 2), 'O'. ($psrow + 2));
+
+		//フォントサイズ設定
+		$this->clsComExcel->SetCellsFontSize('A' . $psrow, 'O' . $psrow, false, 7);
+		$this->clsComExcel->SetCellsFontSize('A' . ($psrow + 2), 'O' . ($psrow + 2), false, 7);
+
+		//折り返して全体を表示
+		$this->clsComExcel->SetCellsWrap('A'. ($psrow + 2), 'I'. ($psrow + 2), true);
+		$this->clsComExcel->SetCellsWrap('K'. ($psrow + 2), 'K'. ($psrow + 2), true);
+
+		//背景色設定
+		$this->clsComExcel->SetCellsBackColor('A' . ($psrow + 2), 'O' . ($psrow + 2), '00ffff');
+
+		//罫線
+		$this->clsComExcel->SetCellsLine('A' . ($psrow + 2), 'O' . ($psrow + 2), PHPExcel_Style_Border::BORDER_THIN, 4);
+
+		//太線
+		$this->clsComExcel->SetCellsLine('F' . ($psrow + 2), 'F' . ($psrow + 2), PHPExcel_Style_Border::BORDER_MEDIUM, 2);
+		$this->clsComExcel->SetCellsLine('F' . ($psrow + 2), 'F' . ($psrow + 2), PHPExcel_Style_Border::BORDER_MEDIUM, 3);
+
+		//右寄せ
+		$this->clsComExcel->SetCellsAlign('O' . $psrow, 'O' . $psrow, 2);
+
+		//中央寄せ
+		$this->clsComExcel->SetCellsAlign('A' . ($psrow + 2), 'O' . ($psrow + 2), 1);
+
+		$toymd = "";
+		if(isset($arrPram["toymd"]) && !empty($arrPram["toymd"])) { $toymd = $arrPram["toymd"] . "号"; }
+		$arrData = array('O' . $psrow  => $arrPram["fromymd"] . "号～" . $toymd . "適用 " . $kyonm,
+						 'A' . ($psrow + 2) => "ブロック", 
+						 'D' . ($psrow + 2) => "配布",
+						 'F' . ($psrow + 2) => "チラシ" . PHP_EOL . "部数",
+						 'G' . ($psrow + 2) => "戸建" . PHP_EOL . "配布率",
+						 'H' . ($psrow + 2) => "戸建",
+						 'I' . ($psrow + 2) => "集合",
+						 'J' . ($psrow + 2) => "その他",
+						 'K' . ($psrow + 2) => "選別" . PHP_EOL . "不可",
+						 'L' . ($psrow + 2) => "町名");
+
+		$this->clsComExcel->SetCellValue($arrData);
+
+		//--------------------
+		// フッター情報設定
+		//--------------------
+		//行の高さ
+		$this->clsComExcel->SetRowHeight($perow, 25.5);
+
+		//セルの結合
+		$this->clsComExcel->SetMergeCells('A'. $perow, 'F'. $perow);
+		$this->clsComExcel->SetMergeCells('G'. $perow, 'I'. $perow);
+		$this->clsComExcel->SetMergeCells('K'. $perow, 'O'. $perow);
+
+		//フォントサイズ設定
+		$this->clsComExcel->SetCellsFontSize('A' . $perow, 'J' . $perow, true, 12);
+		$this->clsComExcel->SetCellsFontSize('K' . $perow, 'K' . $perow, false, 5);
+
+		//折り返して全体を表示
+		$this->clsComExcel->SetCellsWrap('K'. $perow, 'K'. $perow, true);
+
+		$arrData = array('A' . $perow => '配布部数 ページ合計',
+						 'G' . $perow => '=SUM(E' . $datarow . ':E' . $detailrow . ')',
+						 'J' . $perow => '部',
+						 'K' . $perow => $fmsg);
+
+		$this->clsComExcel->SetCellValue($arrData);
+
+		//改ページ情報設定
+		$this->clsComExcel->SetBreakPage('A'. ($perow + 1), 'P'. ($perow + 1));
+	}
+
+	/**
+	* ブロック表グループ小計情報出力処理
+	* 
+	* @param  $groupcd    グループコード
+	* @param  $datarow    明細データ現在位置
+	* @param  $grouprow   グループ開始行
+	* @return 
+	*/
+    public function printBlockGroupExcel($groupcd, $datarow, $grouprow)
+    {
+		//セル結合
+		$this->clsComExcel->SetMergeCells('B'. $datarow, 'C'. $datarow);
+
+		//背景色設定
+		$this->clsComExcel->SetCellsBackColor('B' . $datarow, 'B' . $datarow, '00ffff');
+
+		//罫線
+		$this->clsComExcel->SetCellsLine('A' . $datarow, 'O' . $datarow, PHPExcel_Style_Border::BORDER_THIN, 4);
+
+		//太線
+		$this->clsComExcel->SetCellsLine('F' . $datarow, 'F' . $datarow, PHPExcel_Style_Border::BORDER_MEDIUM, 2);
+		$this->clsComExcel->SetCellsLine('F' . $datarow, 'F' . $datarow, PHPExcel_Style_Border::BORDER_MEDIUM, 3);
+
+		//フォントサイズ設定
+		$this->clsComExcel->SetCellsFontSize('A' . $datarow, 'E' . $datarow, false, 7);
+		$this->clsComExcel->SetCellsFontSize('F' . $datarow, 'F' . $datarow, false, 10);
+		$this->clsComExcel->SetCellsFontSize('G' . $datarow, 'K' . $datarow, false, 7);
+
+		//フォーマット設定
+		$this->clsComExcel->SetCellsNumberFormat('E' . $datarow, 'F' . $datarow, '#,##0');
+		$this->clsComExcel->SetCellsNumberFormat('H' . $datarow, 'K' . $datarow, '#,##0');
+		$this->clsComExcel->SetCellsNumberFormat('G' . $datarow, 'G' . $datarow, '0.0%');
+
+		//グループ小計情報設定
+		$arrData = array('B' . $datarow => $groupcd . "合計",
+						 'F' . $datarow => '=SUM(H'. $datarow . ':K'. $datarow . ')',
+						 'D' . $datarow => '□',
+						 'E' . $datarow => '=IF(D'. $datarow . '="□","",F'. $datarow . ')',
+						 'F' . $datarow => '=SUM(H'. $datarow . ':K'. $datarow . ')',
+						 'G' . $datarow => '=IF(F'. $datarow . '=0,"",H'. $datarow . '/F'. $datarow . ')',
+						 'H' . $datarow => '=SUM(H'. $grouprow . ':H'. ($datarow - 1) . ')',
+						 'I' . $datarow => '=SUM(I'. $grouprow . ':I'. ($datarow - 1) . ')',
+						 'J' . $datarow => '=SUM(J'. $grouprow . ':J'. ($datarow - 1) . ')',
+						 'K' . $datarow => '=SUM(K'. $grouprow . ':K'. ($datarow - 1) . ')');
+
+		//データ書き込み
+		$this->clsComExcel->SetCellValue($arrData);
+	}
+
+	/**
+	* 地区表出力処理
+	* 
+	* @param  $arrParam  パラメータ配列(kcd  :会社コード, arrcd  :掲載版コード  [カンマ区切り], fromymd :期間[開始], 
+	*                                   blockcd:ブロックコード[カンマ区切り], areacd:エリアコード[カンマ区切り])
+	* @return true:データあり、false:データなし
+	*/
+    public function printAreaExcel($arrPram)
+    {
+		//ファイル読み込み
+		require_once dirname(__FILE__) . "/../models/SqlCirculation.php";
+		require_once dirname(__FILE__) . "/../models/SqlMstSystem.php";
+		require_once dirname(__FILE__) . "/../common/ComExcel.php";
+
+		//初期処理
+		$clsCommon = new Common();
+		$clsComConst = new ComConst();
+		$clsSqlCirculation = new SqlCirculation();
+		$clsSqlMstSystem = new SqlMstSystem();
+		$arrRet = array();
+		$arrRetMsg = array();
+
+		//アクセスログ出力処理
+		$backtraces = debug_backtrace();
+		$msg = $backtraces[1]['class'] . "：" . $backtraces[1]['function'] . "：" . "(" . $arrPram["kcd"] . ") " . $arrPram["scd"] . "：" . $arrPram["snm"] . " [AreaStartPrint]";
+		$logFile = $clsComConst::ACCESS_LOG_PATH. '/'. strtr('#DT#.log', array('#DT#'=>date('Ymd')));
+		$logger = new Zend_Log(new Zend_Log_Writer_Stream($logFile));
+		$logger->log($msg, Zend_Log::INFO);
+
+		//地区表情報検索
+		$blnRet = $clsSqlCirculation->SelectCirculationArea($clsComConst::DB_KIKAN , $arrPram);
+
+		if($blnRet) { $arrRet = $clsSqlCirculation->GetData(); }
+
+		if(count($arrRet) > 0)
+		{
+			try
+			{
+				//フッターメッセージ検索
+				$fmsg = "";
+				$arrMstPram = array("kcd" => $arrPram["kcd"], "entry" => "BUSUUHYOU", "section" => "CHIKUHYOFOOTER");
+				$blnRet = $clsSqlMstSystem->SelectSystemMsg($clsComConst::DB_KIKAN_SUB , $arrMstPram);
+				if($blnRet) { $arrRetMsg = $clsSqlMstSystem->GetData(); }
+				if(isset($arrRetMsg[0]["val"])) { $fmsg = $clsCommon->ConverDisp($arrRetMsg[0]["val"]); }
+
+				//定数定義
+				$maxcol = 10;							//カラム数
+				$maxprow = 76;							//ページ最大行数
+				$maxdrow = 71;							//明細行最大行数
+				$startrow = 4;							//明細開始位置
+
+				//変数定義
+				$psrow = 1;								//ページ開始行
+				$perow = $maxprow;						//ページ終了行
+				$detailrow = $perow - 3;				//明細行
+				$datarow = $startrow;					//明細データ現在位置
+				$grouprow = $startrow;					//グループ開始行
+				$subgrouprow = $startrow;				//サブグループ開始行
+				$kyonm = $arrRet[0]["KYOTEN_NM"];		//拠点名
+				$groupcd = $arrRet[0]["AREA_CD"];		//グループエリアコード
+				$subgroupcd = $arrRet[0]["KUIKI_CD"];	//グループ区域コード
+				$groupflg = $false;						//グループ印刷フラグ
+
+				//Excel生成クラス
+				$this->clsComExcel = new ComExcel($clsComConst::EXCEL_AREA_PATH, "area", "地区表");
+
+				//ヘッダーフッター情報設定
+				self::printAreaHeaderFooterExcel($arrPram, $kyonm, $psrow, $maxcol, $perow, $datarow, $detailrow, $fmsg);
+
+				for ($i = 0 ; $i < count($arrRet); $i++)
+				{
+					if((int)$arrRet[$i]["CNT"] > $maxdrow) { throw new Exception("出力データ不正", $clsComConst::ERR_CODE_500); }
+
+					if($subgroupcd != $arrRet[$i]["KUIKI_CD"])
+					{
+						//地区表サブグループ小計情報出力処理
+						self::printAreaSubGroupExcel($subgroupcd, $datarow, $subgrouprow);
+
+						$subgroupcd = $arrRet[$i]["KUIKI_CD"];
+						$subgrouprow = $datarow + 1;
+						$datarow += 1;
+
+						if($groupcd != $arrRet[$i]["AREA_CD"])
+						{
+							//地区表グループ小計情報出力処理
+							self::printAreaGroupExcel($groupcd, $datarow, $grouprow);
+
+							$groupcd = $arrRet[$i]["AREA_CD"];
+							$grouprow = $datarow + 1;
+							$datarow += 1;
+							$groupflg = true;
+						}
+
+						if($groupflg ||($kyonm != $arrRet[$i]["KYOTEN_NM"]) || ((int)$arrRet[$i]["CNT"] > ($detailrow - ($datarow + 1))))
+						{
+							$psrow += $maxprow;					//ページ開始行
+							$perow += $maxprow;					//ページ終了行
+							$detailrow = $perow - 3;			//明細行
+							$datarow = $psrow + $startrow - 1;	//明細データ現在位置
+							$subgrouprow = $datarow;			//サブグループ開始行
+							$kyonm = $arrRet[$i]["KYOTEN_NM"];
+							$groupflg = false;
+
+							//ヘッダーフッター情報設定
+							self::printAreaHeaderFooterExcel($arrPram, $kyonm, $psrow, $maxcol, $perow, $datarow, $detailrow, $fmsg);
+						}
+					}
+
+					//罫線
+					$this->clsComExcel->SetCellsLine('A' . $datarow, 'J' . $datarow, PHPExcel_Style_Border::BORDER_THIN, 4);
+					$this->clsComExcel->SetCellsLine('B' . $datarow, 'B' . $datarow, PHPExcel_Style_Border::BORDER_DOTTED, 2);
+
+					//フォーマット設定
+					$this->clsComExcel->SetCellsNumberFormat('D' . $datarow, 'D' . $datarow, '#,##0');
+					$this->clsComExcel->SetCellsNumberFormat('F' . $datarow, 'I' . $datarow, '#,##0');
+					$this->clsComExcel->SetCellsNumberFormat('E' . $datarow, 'E' . $datarow, '0.0%');
+					$this->clsComExcel->SetFitCellsFontSize('J' . $datarow, 'J' . $datarow);
+
+					//明細情報設定
+					$arrData = array('B' . $datarow => '□',
+									 'C' . $datarow => '=IF(B'. $datarow . '="□","",D'. $datarow . ')',
+									 'D' . $datarow => '=SUM(F'. $datarow . ':I'. $datarow . ')',
+									 'E' . $datarow => '=IF(D'. $datarow . '=0,"",F'. $datarow . '/D'. $datarow . ')',
+									 'F' . $datarow => $arrRet[$i]["KODATE_SU"],
+									 'G' . $datarow => $arrRet[$i]["SHUGOU_SU"],
+									 'H' . $datarow => $arrRet[$i]["SONOTA_SU"],
+									 'I' . $datarow => $arrRet[$i]["SENBETU_FUKA_SU"],
+									 'J' . $datarow => $arrRet[$i]["TIIKI_NM"]);
+
+					//データ書き込み
+					$this->clsComExcel->SetCellValue($arrData);
+
+					//明細情報設定
+					$arrData = array('A' . $datarow => $arrRet[$i]["TIIKI_CD"]);
+
+					//データ書き込み
+					$this->clsComExcel->SetCellStringValue($arrData);
+					$datarow += 1;
+				}
+
+				//地区表サブグループ小計情報出力処理
+				self::printAreaSubGroupExcel($subgroupcd, $datarow, $subgrouprow);
+
+				$datarow += 1;
+
+				//地区表グループ小計情報出力処理
+				self::printAreaGroupExcel($groupcd, $datarow, $grouprow);
+
+				//アクセスログ出力処理
+				$backtraces = debug_backtrace();
+				$msg = $backtraces[1]['class'] . "：" . $backtraces[1]['function'] . "：" . "(" . $arrPram["kcd"] . ") " . $arrPram["scd"] . "：" . $arrPram["snm"] . " [AreaEndPrint]";
+				$logFile = $clsComConst::ACCESS_LOG_PATH. '/'. strtr('#DT#.log', array('#DT#'=>date('Ymd')));
+				$logger = new Zend_Log(new Zend_Log_Writer_Stream($logFile));
+				$logger->log($msg, Zend_Log::INFO);
+
+				//Excel出力(2003形式)
+				$this->clsComExcel->OutputExcel();
+				exit;
+			}
+			catch (Exception $e)
+			{
+				throw new Exception($e->getMessage(), $clsComConst::ERR_CODE_500);
+			}
+		}
+		else { return false; }
+
+		return true;
+	}
+
+	/**
+	* 地区表ヘッダーフッター情報出力処理
+	* 
+	* @param  $arrParam  パラメータ配列(kcd  :会社コード, arrcd  :掲載版コード  [カンマ区切り], fromymd :期間[開始], 
+	*                                   blockcd:ブロックコード[カンマ区切り], areacd:エリアコード[カンマ区切り])
+	* @param  $kyonm      拠点名 
+	* @param  $psrow      ページ開始行
+	* @param  $maxcol     カラム数
+	* @param  $perow      ページ終了行
+	* @param  $datarow    明細データ現在位置
+	* @param  $detailrow  明細行
+	* @param  $fmsg       フッター表示メッセージ
+	* @return 
+	*/
+    public function printAreaHeaderFooterExcel($arrPram, $kyonm, $psrow, $maxcol, $perow, $datarow, $detailrow, $fmsg)
+    {
+		//--------------------
+		// ヘッダー情報設定
+		//--------------------
+		//行の高さ
+		$this->clsComExcel->SetRowHeight(($psrow + 2), 21);
+
+		//セルの結合
+		$this->clsComExcel->SetMergeCells('B'. ($psrow + 2), 'C'. ($psrow + 2));
+
+		//背景色設定
+		$this->clsComExcel->SetCellsBackColor('A' . ($psrow + 2), 'J' . ($psrow + 2), '00ffff');
+
+		//折り返して全体を表示
+		$this->clsComExcel->SetCellsWrap('A'. ($psrow + 2), 'J'. ($psrow + 2), true);
+
+		//罫線
+		$this->clsComExcel->SetCellsLine('A' . ($psrow + 2), 'J' . ($psrow + 2), PHPExcel_Style_Border::BORDER_THIN, 4);
+
+		//右寄せ
+		$this->clsComExcel->SetCellsAlign('J' . $psrow, 'J' . $psrow, 2);
+
+		//中央寄せ
+		$this->clsComExcel->SetCellsAlign('D' . ($psrow + 2), 'J' . ($psrow + 2), 1);
+
+		$toymd = "";
+		if(isset($arrPram["toymd"]) && !empty($arrPram["toymd"])) { $toymd = $arrPram["toymd"] . "号"; }
+		$arrData = array('J' . $psrow  => $arrPram["fromymd"] . "号～" . $toymd . "適用 " . $kyonm,
+						 'D' . ($psrow + 2) => "チラシ" . PHP_EOL . "部数", 
+						 'E' . ($psrow + 2) => "戸建" . PHP_EOL . "配布率",
+						 'F' . ($psrow + 2) => "戸建",
+						 'G' . ($psrow + 2) => "集合",
+						 'H' . ($psrow + 2) => "その他",
+						 'I' . ($psrow + 2) => "選別" . PHP_EOL . "不可",
+						 'J' . ($psrow + 2) => "町名");
+
+		$this->clsComExcel->SetCellValue($arrData);
+
+		//--------------------
+		// フッター情報設定
+		//--------------------
+		//行の高さ
+		$this->clsComExcel->SetRowHeight($perow, 42);
+
+		//セルの結合
+		$this->clsComExcel->SetMergeCells('A'. $perow, 'D'. $perow);
+		$this->clsComExcel->SetMergeCells('E'. $perow, 'F'. $perow);
+		$this->clsComExcel->SetMergeCells('H'. $perow, 'J'. $perow);
+
+		//フォントサイズ設定
+		$this->clsComExcel->SetCellsFontSize('A' . $perow, 'G' . $perow, true, 12);
+		$this->clsComExcel->SetCellsFontSize('H' . $perow, 'H' . $perow, false, 5);
+
+		$arrData = array('A' . $perow => '配布部数 ページ合計', 
+						 'E' . $perow => '=SUM(C' . $datarow . ':C' . $detailrow . ')', 
+						 'G' . $perow => '部', 
+						 'H' . $perow => $fmsg);
+
+		$this->clsComExcel->SetCellValue($arrData);
+
+		//改ページ情報設定
+		$this->clsComExcel->SetBreakPage('A'. ($perow + 1), 'K'. ($perow + 1));
+	}
+
+	/**
+	* 地区表サブグループ小計情報出力処理
+	* 
+	* @param  $subgroupcd   サブグループコード 
+	* @param  $datarow      明細データ現在位置
+	* @param  $subgrouprow  サブグループ開始行
+	* @return 
+	*/
+    public function printAreaSubGroupExcel($subgroupcd, $datarow, $subgrouprow)
+    {
+		//セル結合
+		$this->clsComExcel->SetMergeCells('A'. $datarow, 'C'. $datarow);
+
+		//背景色設定
+		$this->clsComExcel->SetCellsBackColor('A' . $datarow, 'A' . $datarow, '00ffff');
+
+		//罫線
+		$this->clsComExcel->SetCellsLine('A' . $datarow, 'J' . $datarow, PHPExcel_Style_Border::BORDER_THIN, 4);
+
+		//フォーマット設定
+		$this->clsComExcel->SetCellsNumberFormat('C' . $datarow, 'D' . $datarow, '#,##0');
+		$this->clsComExcel->SetCellsNumberFormat('F' . $datarow, 'I' . $datarow, '#,##0');
+		$this->clsComExcel->SetCellsNumberFormat('E' . $datarow, 'E' . $datarow, '0.0%');
+
+		//サブグループ小計情報設定
+		$arrData = array('A' . $datarow => $subgroupcd . "合計",
+						 'D' . $datarow => '=SUM(F'. $datarow . ':I'. $datarow . ')',
+						 'E' . $datarow => '=IF(D'. $datarow . '=0,"",F'. $datarow . '/D'. $datarow . ')',
+						 'F' . $datarow => '=SUM(F'. $subgrouprow . ':F'. ($datarow - 1) . ')',
+						 'G' . $datarow => '=SUM(G'. $subgrouprow . ':G'. ($datarow - 1) . ')',
+						 'H' . $datarow => '=SUM(H'. $subgrouprow . ':H'. ($datarow - 1) . ')',
+						 'I' . $datarow => '=SUM(I'. $subgrouprow . ':I'. ($datarow - 1) . ')');
+
+		//データ書き込み
+		$this->clsComExcel->SetCellValue($arrData);
+	}
+
+	/**
+	* 地区表グループ小計情報出力処理
+	* 
+	* @param  $groupcd     グループコード 
+	* @param  $datarow     明細データ現在位置
+	* @param  $grouprow    グループ開始行
+	* @return 
+	*/
+    public function printAreaGroupExcel($groupcd, $datarow, $grouprow)
+    {
+		//セル結合
+		$this->clsComExcel->SetMergeCells('A'. $datarow, 'C'. $datarow);
+
+		//背景色設定
+		$this->clsComExcel->SetCellsBackColor('A' . $datarow, 'A' . $datarow, '00ffff');
+
+		//罫線
+		$this->clsComExcel->SetCellsLine('A' . $datarow, 'J' . $datarow, PHPExcel_Style_Border::BORDER_THIN, 4);
+
+		//フォーマット設定
+		$this->clsComExcel->SetCellsNumberFormat('C' . $datarow, 'D' . $datarow, '#,##0');
+		$this->clsComExcel->SetCellsNumberFormat('F' . $datarow, 'I' . $datarow, '#,##0');
+		$this->clsComExcel->SetCellsNumberFormat('E' . $datarow, 'E' . $datarow, '0.0%');
+
+		//グループ小計情報設定
+		$arrData = array('A' . $datarow => $groupcd . "合計",
+						 'D' . $datarow => '=SUM(F'. $datarow . ':I'. $datarow . ')',
+						 'E' . $datarow => '=IF(D'. $datarow . '=0,"",F'. $datarow . '/D'. $datarow . ')',
+						 'F' . $datarow => '=SUMIF(J'. $grouprow . ':J'. ($datarow - 1) . ',"<>",F'. $grouprow . ':F'. ($datarow - 1) . ')',
+						 'G' . $datarow => '=SUMIF(J'. $grouprow . ':J'. ($datarow - 1) . ',"<>",G'. $grouprow . ':G'. ($datarow - 1) . ')',
+						 'H' . $datarow => '=SUMIF(J'. $grouprow . ':J'. ($datarow - 1) . ',"<>",H'. $grouprow . ':H'. ($datarow - 1) . ')',
+						 'I' . $datarow => '=SUMIF(J'. $grouprow . ':J'. ($datarow - 1) . ',"<>",I'. $grouprow . ':I'. ($datarow - 1) . ')');
+
+		//データ書き込み
+		$this->clsComExcel->SetCellValue($arrData);
+	}
+
+	/**
+	* 担当地区表(CSV)出力処理
+	* 
+	* @param  $arrParam  パラメータ配列(kcd  :会社コード, arrcd  :掲載版コード  [カンマ区切り], fromymd :期間[開始],
+	*                                   blockcd:ブロックコード[カンマ区切り], areacd:エリアコード[カンマ区切り])
+	* @return true:データあり、false:データなし
+	*/
+    public function printAreaCsv($arrPram)
+    {
+		//ファイル読み込み
+		require_once dirname(__FILE__) . "/../models/SqlCirculation.php";
+
+		//初期処理
+		$clsCommon = new Common();
+		$clsComConst = new ComConst();
+		$clsSqlCirculation = new SqlCirculation();
+		$arrRet = array();
+
+		//担当地区表(CSV)情報検索
+		$blnRet = $clsSqlCirculation->SelectCirculationAreaCsv($clsComConst::DB_KIKAN , $arrPram);
+
+		if($blnRet) { $arrRet = $clsSqlCirculation->GetData(); }
+
+		if(count($arrRet) > 0)
+		{
+			//CSV出力処理
+			$clsCommon->SetCsv("担当地区表", $arrRet, "掲載版, ブロック, 担当地区番号, 行政区, 町名１, 町名２, 町名３, 町名４, 戸建, 集合, その他, 選別不可, 戸数合計");
+			exit();
+		}
+		else { return false; }
+
+		return true;
 	}
 
 	/**
@@ -299,7 +1024,8 @@ class AnalysisController extends Zend_Controller_Action
 		$token = $clsCommon->SetParam($this->getRequest(), "token");
 
 		//アクセスチェック
-		if(!$clsCommon->ChkAccess($token)) { throw new Exception("", $clsComConst::ERR_CODE_403); }
+		if(!$clsCommon->ChkAccess($token, '', '', $clsComConst::PGID_ANALYSIS_RHISTORY))
+		{ throw new Exception("", $clsComConst::ERR_CODE_403); }
 
 		//セッション情報取得
 		$session = $clsCommon->GetSession();

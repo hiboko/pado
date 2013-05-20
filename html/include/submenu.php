@@ -4,9 +4,9 @@
 			</div>
 			<div class="section">
 				<h3>分析</h3>
-				<ul>
-					<li><a href="http://kikansubtest.pado.jp:8081/analysis/circulation/?token=<?= $this->Token ?>">部数表</a></li>
-					<li><a href="http://kikansubtest.pado.jp:8081/analysis/receivehistory/?token=<?= $this->Token ?>">受注履歴検索</a></li>
-				</ul>
+				<ul><?= $this->List ?></ul>
+			</div>
+			<div class="section">
+				<a href="http://kikansubtest.pado.jp:8081/"><h3>LOGOUT</h3></a>
 			</div>
 		</div>

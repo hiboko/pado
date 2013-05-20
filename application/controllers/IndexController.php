@@ -3,7 +3,7 @@
 /**
 * IndexController for class
 *
-* ‹¤’Êˆ—ƒNƒ‰ƒX(TOP)
+* å…±é€šå‡¦ç†ã‚¯ãƒ©ã‚¹(TOP)
 *
 * @category   Index
 * @package    Pado
@@ -15,7 +15,7 @@
 class IndexController extends Zend_Controller_Action
 {
 	/**
-	* ‰Šúˆ—
+	* åˆæœŸå‡¦ç†
 	* 
 	* @param
 	* @return 
@@ -26,25 +26,51 @@ class IndexController extends Zend_Controller_Action
     }
 
 	/**
-	* TOPƒy[ƒW
+	* TOPãƒšãƒ¼ã‚¸
 	* 
 	* @param
 	* @return 
 	*/
     public function indexAction()
     {
-		//‰Šúˆ—
+		//åˆæœŸå‡¦ç†
 		$clsCommon = new Common();
 		$clsComConst = new ComConst();
 
-		//ƒpƒ‰ƒ[ƒ^İ’è
+		//ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿è¨­å®š
 		$token = $clsCommon->SetParam($this->getRequest(), "token");
 
-		//ƒAƒNƒZƒXƒ`ƒFƒbƒN
+		//ã‚¢ã‚¯ã‚»ã‚¹ãƒã‚§ãƒƒã‚¯
 		if(!$clsCommon->ChkAccess($token)) { throw new Exception("", $clsComConst::ERR_CODE_403); }
 
-		//İ’èˆ—
+		//ã‚»ãƒƒã‚·ãƒ§ãƒ³æƒ…å ±å–å¾—
+		$session = $clsCommon->GetSession();
+
+		//è¨­å®šå‡¦ç†
+		$list = "";
+		$sublist = "";
+
+		//ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒªã‚¹ãƒˆç”Ÿæˆ
+		foreach ($session->menu as $val)
+		{
+			switch($val)
+			{
+				case $clsComConst::PGID_ANALYSIS_RHISTORY:
+					//å—æ³¨å±¥æ­´æ¤œç´¢
+					$list .= '<li><a href="' . $clsComConst::ANALYSIS_RHISTORY_URL . '?token=' . $token . '"><span>å—æ³¨å±¥æ­´æ¤œç´¢</span></a></li>';
+					$sublist .= '<li><a href="' . $clsComConst::ANALYSIS_RHISTORY_URL . '?token=' . $token . '">å—æ³¨å±¥æ­´æ¤œç´¢</a></li>';
+					break;
+				case $clsComConst::PGID_ANALYSIS_CIRCULATION:
+					//"éƒ¨æ•°è¡¨"
+					$list .= '<li><a href="' . $clsComConst::ANALYSIS_CIRCULATION_URL . '?token=' . $token . '"><span>éƒ¨æ•°è¡¨</span></a></li>';
+					$sublist .= '<li><a href="' . $clsComConst::ANALYSIS_CIRCULATION_URL . '?token=' . $token . '">éƒ¨æ•°è¡¨</a></li>';
+					break;
+			}
+		}
+
 		$this->view->Token = $clsCommon->ConverDisp($token);
+		$this->view->List = $list;
+		$this->view->SubList = $sublist;
     }
 }
 

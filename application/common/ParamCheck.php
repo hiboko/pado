@@ -129,6 +129,8 @@ final class ParamCheck
 			$this->ErrMsg[] = $name . "の入力が不正です。";
 			return false;
 		}
+
+		return true;
 	}
 
 	/**

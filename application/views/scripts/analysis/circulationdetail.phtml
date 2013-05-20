@@ -25,6 +25,111 @@ $(function()
 	document.frmMain.grid.value = grid;
 });
 
+function CheckGrid()
+{
+	var blcd="", areacd="";
+	var arrblcd=[], arrareacd=[];
+	var grid = jQuery("#list");
+	var selrows = grid.getGridParam('selarrrow');
+
+	if (selrows.length > 0)
+	{
+		//画面ブロック
+		//$.blockUI({ message: '<h2>Please Wait...</h2>' });
+
+		for( var i = 0; i < selrows.length; ++i )
+		{
+			var id = selrows[i];
+			var row = grid.getRowData(id);
+
+			if(arrblcd.indexOf(row.blcd) < 0){ arrblcd.push(row.blcd); }
+			if(arrareacd.indexOf(row.areacd) < 0){ arrareacd.push(row.areacd); }
+		}
+
+		for (var j = 0; j < arrblcd.length; j++) { blcd = blcd + arrblcd[j] + ","; }
+		blcd = blcd.substr(0, blcd.length-1);
+
+		for (var j = 0; j < arrareacd.length; j++) { areacd = areacd + arrareacd[j] + ","; }
+		areacd = areacd.substr(0, areacd.length-1);
+
+		document.frmMain.check.value = selrows;
+		document.frmMain.blcd.value = blcd;
+		document.frmMain.areacd.value = areacd;
+		document.frmMain.click.value = 1;
+
+		//$.ajax({
+		//	type: 'POST',
+		//	url: '<?= $this->circulation_ditail_url ?>',
+		//	data: 'token=<?= $this->Token ?>&check=' + selrows + '&kyocd=' + kyocd + '&blcd=' + blcd + '&areacd=' + areacd + '&click=1',
+		//	success: function(data) {
+		//		alert("成功");
+		//		$.unblockUI();
+		//	},
+		//	error: function( data ) {
+		//		alert("失敗");
+		//		$.unblockUI();
+		//	}
+		//});
+
+		document.frmMain.submit();
+
+		//画面ブロック解除
+		//$.unblockUI();
+	}
+	else { alert("行を選択してください。"); }
+}
+
+function CheckGroup(id, chk)
+{
+	var cnt = $("#list").getGridParam("reccount");
+	var strchk = jQuery("#list").jqGrid('getGridParam','selarrrow');
+
+	for (var i = 1; i <= cnt; i++)
+	{
+		var row = jQuery("#list").getRowData(i);
+
+		if(id == row.base)
+		{
+			if(chk)
+			{
+				if(strchk.indexOf(String(i)) < 0) { $("#list").jqGrid('setSelection', i); }
+			}
+			else
+			{
+				if(strchk.indexOf(String(i)) >= 0) { $("#list").jqGrid('setSelection', i); }
+			}
+		}
+	}
+}
+
+function CheckSubGroup(id, chk)
+{
+	var cnt = $("#list").getGridParam("reccount");
+	var strchk = jQuery("#list").jqGrid('getGridParam','selarrrow');
+
+	for (var i = 1; i <= cnt; i++)
+	{
+		var row = jQuery("#list").getRowData(i);
+
+		if(id == row.block)
+		{
+			if(chk)
+			{
+				if(strchk.indexOf(String(i)) < 0) { $("#list").jqGrid('setSelection', i); }
+			}
+			else
+			{
+				if(strchk.indexOf(String(i)) >= 0) { $("#list").jqGrid('setSelection', i); }
+			}
+		}
+	}
+}
+
+function btnReturn_onclick()
+{
+	location.href = "<?= $this->circulation_url ?>?token=<?= $this->Token ?>&type=<?= $this->Type ?>&report=<?= $this->Report ?>&between=<?= $this->FromYmd ?>～<?= $this->ToYmd ?>";
+}
+
 </script>
 
 <script type="text/javascript">
@@ -38,9 +143,9 @@ jQuery(document).ready(function()
 		datatype : 'local',
 		colNames : [ '流通拠点', 'ブロック', 'エリア', '拠点コード', 'ブロックコード', 'エリアコード'],
 		colModel : [ 
-			{ name : 'base' , index : 'base', width:80},
+			{ name : 'base' , index : 'base', width:80, isLeaf:false, expanded:false, loaded:true},
 			{ name : 'block', index : 'block',width:80, align:'center'},
-			{ name : 'area' , index : 'area', width:150},
+			{ name : 'area' , index : 'area', width:200},
 			{ name : 'kyocd' , index : 'kyocd' , hidden: true , width:30, align:'center'},
 			{ name : 'blcd'  , index : 'blcd'  , hidden: true , width:30, align:'center'},
 			{ name : 'areacd', index : 'areacd', hidden: true , width:30, align:'center'}
@@ -50,58 +155,101 @@ jQuery(document).ready(function()
 		rowNum      : 2000,
 		sortname    : 'base,block',
 		sortorder   : "asc",
-		height		: 480,
+		height		: 400,
 		width       : 'auto',
 		viewrecords : true,
+
+		onSelectAll: function(ids, b_check)
+		{
+		},
 
 		treeGrid     : true,
 		treeGridModel: 'nested',
 		treedatatype : 'local',
+		ExpandColumn : 'base',
 		multiselect  : true,
 		scrollrows   : false,
-		ongroupFieldClick: function(id){ alert("ああ"); },
-		grouping	 : true,	//グルーピングを使用する
-		groupingView : {		//グルーピングの設定
-			groupField		 : ['base','block'], //グループ化したい項目
-			groupText		 : ['<b>{0}</b>'], //グループ化した項目の表示名
-			groupOrder 		 : ['asc'], //昇順
+		grouping	 : true,
+		groupingView : {
+			groupField		 : ['base','block'], 
+			groupText		 : ['<b>{0}</b>', '<input type="checkbox" id="chksubgroup" name="chksubgroup" onclick="CheckSubGroup(\'{0}\',this.checked)"/> <b>{0}</b>'], 
+			groupOrder 		 : ['asc'], 
 			groupColumnShow  : [true],
-			groupSummary	 : [false]  //サマリータイプを使用する
+			groupCollapse    : true,
+			groupSummary	 : [false]
 		}
 	});
+
+	//var chkdata = "<?= $this->check ?>";
+	//$("#list").jqGrid('setSelection', 2);
 });
 
 </script>
-
 
 <title>ぱど基幹サブシステム 部数表詳細</title>
 
 </head>
 <body>
 
-	<form name="frmMain" action="circulationdetail" method="post">
-		<input type="hidden" name="type" value="<?= $this->Type ?>">
-		<input type="hidden" name="report" value="<?= $this->Report ?>">
-		<input type="hidden" name="toymd" value="<?= $this->ToYmd ?>">
-		<input type="hidden" name="fromymd" value="<?= $this->FromYmd ?>">
-		<input type="hidden" name="token" value="<?= $this->Token ?>">
-		<input type="hidden" name="grid">
+<!-- #top start -->
+<div id="top">
 
-		<div style="margin-top: 10px; margin-left: 10px;">
-			<p><span class="required"><?= $this->ErrMsg ?></span></p>
-			<table id="list"></table>
-			<br>
-			<table width="350">
-				<tr align="right">
-					<td>
-						<input type="submit" name="btnPrint" id="btnPrint" class="button" value="出力" />
-						<input type="button" name="btnCancel" id="btnCancel" class="button" value="キャンセル" onclick="window.close(); return false;" />
-					</td>
-				</tr>
-			</table>
-			<br>
+	<!-- #header include -->
+	<? @include("html/include/header.inc"); ?>
+
+	<!-- #header menu include -->
+	<? @include("html/include/headermenu.php"); ?>
+
+	<!-- #contents start -->
+	<div id="contents">
+
+		<!-- #main start -->
+		<div id="main">
+			<h2>部数表</h2>
+			<p>ブロック表、地区表、担当地区表を出力する</p>
+
+			<!-- #frmMain start -->
+			<form name="frmMain" action="circulationdetail" method="post">
+				<input type="hidden" name="type" value="<?= $this->Type ?>">
+				<input type="hidden" name="report" value="<?= $this->Report ?>">
+				<input type="hidden" name="fromymd" value="<?= $this->FromYmd ?>">
+				<input type="hidden" name="toymd" value="<?= $this->ToYmd ?>">
+				<input type="hidden" name="token" value="<?= $this->Token ?>">
+				<input type="hidden" name="grid">
+				<input type="hidden" name="check" value="<?= $this->Check ?>">
+				<input type="hidden" name="blcd">
+				<input type="hidden" name="areacd">
+				<input type="hidden" name="click">
+
+				<div style="margin-top: 10px; margin-left: 10px;">
+					<p><span class="required"><?= $this->ErrMsg ?></span></p>
+					<table id="list"></table>
+					<br>
+					<table width="400">
+						<tr align="right">
+							<td>
+								<input type="button" name="btnPrint" id="btnPrint" class="button" value="出力" onclick="CheckGrid();" />
+								<input type="button" name="btnReturn" id="btnReturn" class="button" value="戻る" onclick="btnReturn_onclick(); return false;" />
+							</td>
+						</tr>
+					</table>
+					<br>
+				</div>
+			</form>
+			<!-- #frmMain end -->
 		</div>
-	</form>
+		<!-- #main end -->
+
+	</div>
+	<!-- #contents end -->
+
+	<!-- #header include -->
+	<? @include("html/include/footer.inc"); ?>
+
+</div>
+<!-- #top end -->
+
+</p:panel>
 
 </body>
 </html>

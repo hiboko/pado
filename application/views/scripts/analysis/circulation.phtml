@@ -30,31 +30,41 @@ function ChangeSelect()
 	}
 
 	rp = rp.substr(0,rp.length -1);
-	document.frmMain.arrrpt.value = rp;
-}
-
-function ChangeRadio()
-{
-	document.frmMain.arrrpt.value = "";
+	document.frmMain.report.value = rp;
 }
 
 function btnDetail_onclick()
 {
 	var type = "<?= $this->Type ?>";
-	var report = "<?= $this->ArrRpt ?>";
+	var report = "<?= $this->Report ?>";
 	var ymd = document.frmMain.between.value;
 	var toymd = "";
 	var fromymd = "";
 
-	if(type == "" || report == "" || ymd == "") { alert("必須刻目を選択して下さい"); }
+	if(type == "" || report == "" || ymd == "") { alert("必須項目を選択して下さい"); }
 	else
 	{
 		var arrymd = ymd.split("～");
-		if(arrymd.length > 0){ toymd = arrymd[0]; }
-		if(arrymd.length > 1){ fromymd = arrymd[1]; }
-		var child = "<?= $this->circulation_ditail_url ?>?token=<?= $this->Token ?>&type=" + type + "&report=" + report + "&toymd=" + toymd + "&fromymd=" + fromymd;
-		window.open(child,"clientchild","width=390,height=650,scrollbars=yes");
+		if(arrymd.length > 0){ fromymd= arrymd[0]; }
+		if(arrymd.length > 1){ toymd = arrymd[1]; }
+		var child = "<?= $this->circulation_ditail_url ?>?token=<?= $this->Token ?>&type=" + type + "&report=" + report + "&fromymd=" + fromymd + "&toymd=" + toymd;
+		location.href = child;
 	}
+}
+
+function btnPrint_onclick()
+{
+	if(window.confirm('出力します。よろしいですか？'))
+	{
+		document.frmMain.print.value = 1;
+		document.frmMain.submit();
+	}
+}
+
+function btnRadio_onchange()
+{
+	document.frmMain.change.value = 1;
+	document.frmMain.submit();
 }
 
 </script>
@@ -80,12 +90,15 @@ function btnDetail_onclick()
 		<div id="main">
 			<h2>部数表</h2>
 			<p>ブロック表、地区表、担当地区表を出力する</p>
+			<p><span class="required"><?= $this->ErrMsg ?></span></p>
 
 			<!-- #frmMain start -->
 			<form name="frmMain" action="circulation" method="post">
 				<input type="hidden" id="token" name="token" value="<?= $this->Token ?>">
 				<input type="hidden" id="type" name="type" value="<?= $this->Type ?>">
-				<input type="hidden" id="arrrpt" name="arrrpt" value="<?= $this->ArrRpt ?>">
+				<input type="hidden" id="report" name="report" value="<?= $this->Report ?>">
+				<input type="hidden" id="change" name="change">
+				<input type="hidden" id="print" name="print">
 
 				<!-- #formSubArea start -->
 				<div id="formSubArea" style="width:620px;">
@@ -93,9 +106,9 @@ function btnDetail_onclick()
 						<tr>
 							<th width="100">種別</th>
 							<td>
-								<input type="radio" name="type" value="1" onChange="ChangeRadio(); this.form.submit();" <?php if($this->Type == 1){echo 'checked';}?>>ブロック表(EXCEL) 
-								<input type="radio" name="type" value="2" onChange="ChangeRadio(); this.form.submit();" <?php if($this->Type == 2){echo 'checked';}?>>地区表(EXCEL) 
-								<input type="radio" name="type" value="3" onChange="ChangeRadio(); this.form.submit();" <?php if($this->Type == 3){echo 'checked';}?>>担当地区表(CSV) 
+								<input type="radio" name="type" value="1" onChange="btnRadio_onchange();" <?php if($this->Type == 1){echo 'checked';}?>>ブロック表(EXCEL) 
+								<input type="radio" name="type" value="2" onChange="btnRadio_onchange();" <?php if($this->Type == 2){echo 'checked';}?>>地区表(EXCEL) 
+								<input type="radio" name="type" value="3" onChange="btnRadio_onchange();" <?php if($this->Type == 3){echo 'checked';}?>>担当地区表(CSV) 
 							</td>
 						</tr>
 						<tr>
@@ -118,7 +131,7 @@ function btnDetail_onclick()
 							<tr>
 								<td>
 									<input class="button" type="button" name="btnDetail" id="btnDetail" value="詳細" onclick="btnDetail_onclick()" />
-									<input class="button" type="submit" name="btnCsv" id="btnCsv" value="出力" >
+									<input class="button" type="button" name="btnPrint" id="btnPrint" value="出力" onclick="btnPrint_onclick()">
 								</td>
 							</tr>
 						</table>

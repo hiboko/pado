@@ -133,9 +133,10 @@ class Common
 	 * @param $dflg   ダイアログフラグ(1:サブ画面)
 	 * @return true:成功、false:失敗
 	 */
-	public function ChkAccess($token, $dflg=0)
+	public function ChkAccess($token, $dflg=0, $rurl=null, $menu=null)
 	{
 		$clsComConst = new ComConst();
+		$session = new Zend_Session_Namespace('padouser');
 
 		//ブラウザチェック
 		if (!self::ChkBrowser()) { return false; }
@@ -147,7 +148,6 @@ class Common
 		if(strstr($url, "?")) { $url = substr($url, 0, $of=strpos($url,"?")); }
 
 		//セッションチェック
-		$session = new Zend_Session_Namespace('padouser');
 		if((isset($session->scd) || $session->scd != null) &&
 		   (isset($session->token) || $session->token != null) && $session->token == $token) { return true; }
 		else
@@ -164,11 +164,17 @@ class Common
 				exit();
 			}
 
+			//戻りURL指定がある場合
+			if($rurl != ""){ $url = $rurl; }
+
 			//ログインページへリダイレクト
 			header("HTTP/1.1 301 Moved Permanently");
 			header("Location:" . $clsComConst::LOGIN_URL . "?url=" . urlencode($url));
 			exit();
 		}
+
+		//画面メニューIDがある場合
+		if($menu != ""){ if(!in_array($menu, $session->menu)){ return false; } }
 
 		return true;
 	}
