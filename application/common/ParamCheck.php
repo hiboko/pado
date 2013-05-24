@@ -105,7 +105,7 @@ final class ParamCheck
 	}
 
 	/**
-	* 日付チェック
+	* 日付チェック(yyyy/MM/dd)
 	*
 	* @param   $value   チェック値
 	* @return  true:OK、false:NG
@@ -117,6 +117,35 @@ final class ParamCheck
 			try
 			{
 			    $date = new DateTime($value);
+			}
+			catch (Exception $e)
+			{
+				$this->ErrMsg[] = $name . "の入力が不正です。";
+				return false;
+			}
+		}
+		else
+		{
+			$this->ErrMsg[] = $name . "の入力が不正です。";
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	* 日付チェック(yyyy/MM)
+	*
+	* @param   $value   チェック値
+	* @return  true:OK、false:NG
+	*/
+	public function ChkMonth($value, $name)
+	{
+		if(preg_match("/^\d{4}\/\d{2}$/", $value))
+		{
+			try
+			{
+			    $date = new DateTime($value + "01");
 			}
 			catch (Exception $e)
 			{

@@ -32,6 +32,22 @@ class ComConst
 	const ANALYSIS_CIRCULATION_URL = "http://kikansubtest.pado.jp:8081/analysis/circulation/";
 	//部数表詳細
 	const ANALYSIS_CIRCULATION_DITAIL_URL = "http://kikansubtest.pado.jp:8081/analysis/circulationdetail/";
+	//商売名人リスト
+	const PRINTCSV_BUSINESSNAME_LIST_URL = "http://kikansubtest.pado.jp:8081/printcsv/businessnamelist/";
+	//入金精算出力
+	const PRINTCSV_RECIVE_ADJUSTEDAMOUNT_URL = "http://kikansubtest.pado.jp:8081/printcsv/receiveadjustedamount/";
+	//カスタマーセンター問合せ集計出力
+	const PRINTCSV_CUSTOMERSERVICE_TOTAL_URL = "http://kikansubtest.pado.jp:8081/printcsv/customerservicetotal/";
+	//S版管理表出力
+	const PRINTCSV_S_EDITION_LIST_URL = "http://kikansubtest.pado.jp:8081/printcsv/seditionlist/";
+	//事例登録状況出力
+	const PRINTCSV_CASE_REGISTERSITUATION_URL = "http://kikansubtest.pado.jp:8081/printcsv/caseregistersituation/";
+	//ぱどPO精算状況出力
+	const PRINTCSV_POINT_ADJUSTEDSITUATION_URL = "http://kikansubtest.pado.jp:8081/printcsv/pointadjustedsituation/";
+	//ぱどPO精算状況出力(旧システム)
+	const PRINTCSV_OLD_POINT_ADJUSTEDSITUATION_URL = "http://kikansubtest.pado.jp:8081/printcsv/oldpointadjustedsituation/";
+	//前受精算状況出力
+	const PRINTCSV_ADVANCE_ADJUSTED_SITUATION_URL = "http://kikansubtest.pado.jp:8081/printcsv/advanceadjustedsituation/";
 
 	/**********************************************************************************************
 	 * DB
@@ -74,6 +90,22 @@ class ComConst
 	const PGID_ANALYSIS_RHISTORY = 1;
 	//部数表
 	const PGID_ANALYSIS_CIRCULATION = 2;
+	//商売名人リスト
+	const PGID_PRINTCSV_BUSINESSNAME_LIST = 3;
+	//入金精算出力
+	const PGID_PRINTCSV_RECIVE_ADJUSTEDAMOUNT = 4;
+	//カスタマーセンター問合せ集計出力
+	const PGID_PRINTCSV_CUSTOMERSERVICE_TOTAL = 5;
+	//S版管理表出力
+	const PGID_PRINTCSV_S_EDITION_LIST = 6;
+	//事例登録状況出力
+	const PGID_PRINTCSV_CASE_REGISTERSITUATION = 7;
+	//ぱどPO精算状況出力
+	const PGID_PRINTCSV_POINT_ADJUSTEDSITUATION = 8;
+	//ぱどPO精算状況出力(旧システム)
+	const PGID_PRINTCSV_OLD_POINT_ADJUSTEDSITUATION = 9;
+	//前受精算状況出力
+	const PGID_PRINTCSV_ADVANCE_ADJUSTED_SITUATION = 10;
 
 	/**********************************************************************************************
 	 * 判定コード

@@ -68,7 +68,7 @@
 });
 
 /* ===================================================================
- * 日付変換処理
+ * 日付変換処理(yyyy/mm/dd)
 =================================================================== */
 function setFormatDate($obj)
 {
@@ -103,4 +103,41 @@ function setFormatDate($obj)
 	};
 
 	$obj.value = (date.getFullYear() + "/" + toDoubleDigits(date.getMonth() + 1) + "/" + toDoubleDigits(date.getDate()));
+}
+
+/* ===================================================================
+ * 日付変換処理(yyyy/mm)
+=================================================================== */
+function setFormatMonth($obj)
+{
+	$obj.value = $obj.value.replace(/(^\s+)|(\s+$)/g, "");
+
+	if($obj.value === "") { return; }
+
+	if($obj.value.split("/").length == 2)
+	{
+		if($obj.value.length != 7){ alert("有効な桁数ではありません。");  return false; }
+		if(isNaN($obj.value.substr(0, 4))){ alert("有効な整数ではありません。");  return false; }
+		if(isNaN($obj.value.substr(5, 2))){ alert("有効な整数ではありません。");  return false; }
+		$obj.value = $obj.value + "/01";
+	}
+	else
+	{
+		if(isNaN($obj.value)){ alert("有効な整数ではありません。");  return false; }
+		if($obj.value.length != 6){ alert("有効な桁数ではありません。");  return false; }
+		else 
+		{
+			$obj.value = $obj.value.substr(0, 4) + "/" + $obj.value.substr(4, 2) + "/01";
+		}
+	}
+
+	var date = new Date($obj.value);
+	var toDoubleDigits = function(num)
+	{
+		num += "";
+		if (num.length === 1) { num = "0" + num; }
+		return num;
+	};
+
+	$obj.value = (date.getFullYear() + "/" + toDoubleDigits(date.getMonth() + 1));
 }

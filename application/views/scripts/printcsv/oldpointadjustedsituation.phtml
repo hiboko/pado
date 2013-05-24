@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
+<meta name="keywords" content="ぱど基幹サブシステム,分析,ぱどPO精算状況出力(旧システム)" />
+<meta name="description" content="ぱど基幹サブシステム ぱどPO精算状況出力(旧システム)" />
+<link rel="stylesheet" href="/html/css/common.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/style.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/jquery-ui-1.10.0.custom.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/ui.jqgrid.css" type="text/css" />
+<script type="text/javascript" src="/html/js/jquery.js"></script>
+<script type="text/javascript" src="/html/js/jquery-ui-1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="/html/js/jquery.jqGrid.min.js"></script>
+<script type="text/javascript" src="/html/js/i18n/grid.locale-ja.js"></script>
+<script type="text/javascript" src="/html/js/i18n/jquery.ui.datepicker-ja.js"></script>
+<script type="text/javascript" src="/html/js/common.js"></script>
+<script type="text/javascript" src="/html/js/blockUI.js"></script>
+
+<script language=javascript>
+
+$(function()
+{
+	$("#txtStartDate").datepicker({
+		 inline: true,
+		 showOn: 'button',
+		 dateFormat: "yy/mm/dd",
+		 buttonImage: "/html/css/images/calendar.gif",
+		 buttonImageOnly: true
+	});
+
+	$("#txtEndDate").datepicker({
+		 inline: true,
+		 showOn: 'button',
+		 dateFormat: "yy/mm/dd",
+		 buttonImage: "/html/css/images/calendar.gif",
+		 buttonImageOnly: true
+	});
+
+	$("#txtSStartDate").datepicker({
+		 inline: true,
+		 showOn: 'button',
+		 dateFormat: "yy/mm/dd",
+		 buttonImage: "/html/css/images/calendar.gif",
+		 buttonImageOnly: true
+	});
+
+	$("#txtSEndDate").datepicker({
+		 inline: true,
+		 showOn: 'button',
+		 dateFormat: "yy/mm/dd",
+		 buttonImage: "/html/css/images/calendar.gif",
+		 buttonImageOnly: true
+	});
+});
+
+function btnCsv_onclick()
+{
+	if(window.confirm('出力します。よろしいですか？'))
+	{
+		document.frmMain.print.value = 1;
+		document.frmMain.submit();
+	}
+}
+
+</script>
+
+<title>ぱど基幹サブシステム ぱどPO精算状況(旧システム)出力</title>
+
+</head>
+<body>
+
+<!-- #top start -->
+<div id="top">
+
+	<!-- #header include -->
+	<? @include("html/include/header.inc"); ?>
+
+	<!-- #header menu include -->
+	<? @include("html/include/headermenu.php"); ?>
+
+	<!-- #contents start -->
+	<div id="contents">
+
+		<!-- #main start -->
+		<div id="main">
+			<h2>ぱどPO精算状況(旧システム)出力</h2>
+			<p>ぱどPO精算状況(旧システム)を出力する</p>
+			<p><span class="required"><?= $this->ErrMsg ?></span></p>
+
+			<!-- #frmMain start -->
+			<form name="frmMain" action="circulation" method="post">
+				<input type="hidden" id="token" name="token" value="<?= $this->Token ?>">
+				<input type="hidden" id="print" name="print">
+
+				<!-- #formSubArea start -->
+				<div id="formSubArea" style="width:350px;">
+					<table>
+						<tr>
+							<th width="100">納期</th>
+							<td>
+								<input type="text" name="startdate" id="txtStartDate" value="<?= $this->StartDate ?>" onChange="setFormatMonth(this);" maxlength="7" style="width:80px;" /> ～
+								<input type="text" name="enddate" id="txtEndDate" value="<?= $this->EndDate ?>" onChange="setFormatMonth(this);" maxlength="7" style="width:80px;" />
+							</td>
+						</tr>
+						<tr>
+							<th>精算日</th>
+							<td>
+								<input type="text" name="sstartdate" id="txtSStartDate" value="<?= $this->SStartDate ?>" onChange="setFormatDate(this);" maxlength="10" style="width:80px;" /> ～
+								<input type="text" name="senddate" id="txtSEndDate" value="<?= $this->SEndDate ?>" onChange="setFormatDate(this);" maxlength="10" style="width:80px;" />
+							</td>
+						</tr>
+					</table>
+					<div id="formBtnArea" class="formBtnArea" style="width:350px;">
+						<table width="350px">
+							<tr>
+								<td>
+									<input class="button" type="button" name="btnCsv" id="btnCsv" value="出力" onclick="btnCsv_onclick()">
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+				<!-- #formSubArea end -->
+
+			</form>
+			<!-- #frmMain end -->
+
+		</div>
+		<!-- #main end -->
+
+	</div>
+	<!-- #contents end -->
+
+	<!-- #header include -->
+	<? @include("html/include/footer.inc"); ?>
+
+</div>
+<!-- #top end -->
+
+</body>
+</html>

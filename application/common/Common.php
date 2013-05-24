@@ -14,6 +14,32 @@
 class Common 
 {
 	/**
+	 * メニューリスト
+	 */
+	private $MenuList = "";
+
+	/**
+	 * サブメニューリスト
+	 */
+	private $SubMenuList = "";
+
+	/**
+	 * メニューリスト取得
+	 */
+	public function GetMenuList()
+	{
+		return $this->MenuList;
+	}
+
+	/**
+	 * サブメニューリスト取得
+	 */
+	public function GetSubMenuList()
+	{
+		return $this->SubMenuList;
+	}
+
+	/**
 	 * ブラウザチェック
 	 * 
 	 * @param 
@@ -149,7 +175,13 @@ class Common
 
 		//セッションチェック
 		if((isset($session->scd) || $session->scd != null) &&
-		   (isset($session->token) || $session->token != null) && $session->token == $token) { return true; }
+		   (isset($session->token) || $session->token != null) && $session->token == $token)
+		{
+			//画面メニューIDがある場合
+			if($menu != ""){ if(!in_array($menu, $session->menu)){ return false; } }
+			//画面メニュー生成処理
+			if (!self::SetMenu($session, $token, $menu)) { return false; }
+		}
 		else
 		{
 			if($dflg == $clsComConst::CODE_DIALOG)
@@ -173,8 +205,112 @@ class Common
 			exit();
 		}
 
-		//画面メニューIDがある場合
-		if($menu != ""){ if(!in_array($menu, $session->menu)){ return false; } }
+		return true;
+	}
+
+	/**
+	 * メニュー生成処理
+	 * 
+	 * @param $session  セッション情報
+	 * @param $token    トークン情報
+	 * @param $menu     メニューID
+	 * @return true:成功、false:失敗
+	 */
+	public function SetMenu($session, $token, $menu)
+	{
+		//初期処理
+		$clsComConst = new ComConst();
+		$listactive = "";
+		$csvactive = "";
+
+		switch($menu)
+		{
+			case $clsComConst::PGID_ANALYSIS_RHISTORY:
+			case $clsComConst::PGID_ANALYSIS_CIRCULATION:
+				$listactive = "active ";
+				break;
+			case $clsComConst::PGID_PRINTCSV_BUSINESSNAME_LIST:
+			case $clsComConst::PGID_PRINTCSV_RECIVE_ADJUSTEDAMOUNT:
+			case $clsComConst::PGID_PRINTCSV_CUSTOMERSERVICE_TOTAL:
+			case $clsComConst::PGID_PRINTCSV_S_EDITION_LIST:
+			case $clsComConst::PGID_PRINTCSV_CASE_REGISTERSITUATION:
+			case $clsComConst::PGID_PRINTCSV_POINT_ADJUSTEDSITUATION:
+			case $clsComConst::PGID_PRINTCSV_OLD_POINT_ADJUSTEDSITUATION:
+			case $clsComConst::PGID_PRINTCSV_ADVANCE_ADJUSTED_SITUATION:
+				$csvactive = "active ";
+				break;
+		}
+
+		$list = '<li class="' . $listactive . 'has-sub"><a href="#"><span>分析</span></a><ul>';
+		$csv = '<li class="' . $csvactive . 'has-sub"><a href="#"><span>CSV</span></a><ul>';
+		$sublist = '<div class="section"><h3>分析</h3>';
+		$subcsv = '<div class="section"><h3>CSV出力</h3>';
+
+		//メニューリスト生成
+		foreach ($session->menu as $val)
+		{
+			switch($val)
+			{
+				case $clsComConst::PGID_ANALYSIS_RHISTORY:
+					//受注履歴検索
+					$list .= '<li><a href="' . $clsComConst::ANALYSIS_RHISTORY_URL . '?token=' . $token . '"><span>受注履歴検索</span></a></li>';
+					$sublist .= '<li><a href="' . $clsComConst::ANALYSIS_RHISTORY_URL . '?token=' . $token . '">受注履歴検索</a></li>';
+					break;
+				case $clsComConst::PGID_ANALYSIS_CIRCULATION:
+					//部数表
+					$list .= '<li><a href="' . $clsComConst::ANALYSIS_CIRCULATION_URL . '?token=' . $token . '"><span>部数表</span></a></li>';
+					$sublist .= '<li><a href="' . $clsComConst::ANALYSIS_CIRCULATION_URL . '?token=' . $token . '">部数表</a></li>';
+					break;
+				case $clsComConst::PGID_PRINTCSV_BUSINESSNAME_LIST:
+					//商売名人リスト
+					$csv .= '<li><a href="' . $clsComConst::PRINTCSV_BUSINESSNAME_LIST_URL . '?token=' . $token . '"><span>商売名人リスト</span></a></li>';
+					$subcsv .= '<li><a href="' . $clsComConst::PRINTCSV_BUSINESSNAME_LIST_URL . '?token=' . $token . '">商売名人リスト</a></li>';
+					break;
+				case $clsComConst::PGID_PRINTCSV_RECIVE_ADJUSTEDAMOUNT:
+					//入金精算出力
+					$csv .= '<li><a href="' . $clsComConst::PRINTCSV_RECIVE_ADJUSTEDAMOUNT_URL . '?token=' . $token . '"><span>入金精算出力</span></a></li>';
+					$subcsv .= '<li><a href="' . $clsComConst::PRINTCSV_RECIVE_ADJUSTEDAMOUNT_URL . '?token=' . $token . '">入金精算出力</a></li>';
+					break;
+				case $clsComConst::PGID_PRINTCSV_CUSTOMERSERVICE_TOTAL:
+					//カスタマーセンター問合せ集計出力
+					$csv .= '<li><a href="' . $clsComConst::PRINTCSV_CUSTOMERSERVICE_TOTAL_URL . '?token=' . $token . '"><span>ｶｽﾀﾏｰｾﾝﾀｰ問合せ集計出力</span></a></li>';
+					$subcsv .= '<li><a href="' . $clsComConst::PRINTCSV_CUSTOMERSERVICE_TOTAL_URL . '?token=' . $token . '">ｶｽﾀﾏｰｾﾝﾀｰ問合せ集計出力</a></li>';
+					break;
+				case $clsComConst::PGID_PRINTCSV_S_EDITION_LIST:
+					//S版管理表出力
+					$csv .= '<li><a href="' . $clsComConst::PRINTCSV_S_EDITION_LIST_URL . '?token=' . $token . '"><span>S版管理表出力</span></a></li>';
+					$subcsv .= '<li><a href="' . $clsComConst::PRINTCSV_S_EDITION_LIST_URL . '?token=' . $token . '">S版管理表出力</a></li>';
+					break;
+				case $clsComConst::PGID_PRINTCSV_CASE_REGISTERSITUATION:
+					//事例登録状況出力
+					$csv .= '<li><a href="' . $clsComConst::PRINTCSV_CASE_REGISTERSITUATION_URL . '?token=' . $token . '"><span>事例登録状況出力</span></a></li>';
+					$subcsv .= '<li><a href="' . $clsComConst::PRINTCSV_CASE_REGISTERSITUATION_URL . '?token=' . $token . '">事例登録状況出力</a></li>';
+					break;
+				case $clsComConst::PGID_PRINTCSV_POINT_ADJUSTEDSITUATION:
+					//ぱどPO精算状況出力
+					$csv .= '<li><a href="' . $clsComConst::PRINTCSV_POINT_ADJUSTEDSITUATION_URL . '?token=' . $token . '"><span>ぱどPO精算状況出力</span></a></li>';
+					$subcsv .= '<li><a href="' . $clsComConst::PRINTCSV_POINT_ADJUSTEDSITUATION_URL . '?token=' . $token . '">ぱどPO精算状況出力</a></li>';
+					break;
+				case $clsComConst::PGID_PRINTCSV_OLD_POINT_ADJUSTEDSITUATION:
+					//ぱどPO精算状況出力
+					$csv .= '<li><a href="' . $clsComConst::PRINTCSV_OLD_POINT_ADJUSTEDSITUATION_URL . '?token=' . $token . '"><span>ぱどPO精算状況出力(旧SYS)</span></a></li>';
+					$subcsv .= '<li><a href="' . $clsComConst::PRINTCSV_OLD_POINT_ADJUSTEDSITUATION_URL . '?token=' . $token . '">ぱどPO精算状況出力(旧SYS)</a></li>';
+					break;
+				case $clsComConst::PGID_PRINTCSV_ADVANCE_ADJUSTED_SITUATION:
+					//前受精算状況出力
+					$csv .= '<li><a href="' . $clsComConst::PRINTCSV_ADVANCE_ADJUSTED_SITUATION_URL . '?token=' . $token . '"><span>前受精算状況出力</span></a></li>';
+					$subcsv .= '<li><a href="' . $clsComConst::PRINTCSV_ADVANCE_ADJUSTED_SITUATION_URL . '?token=' . $token . '">前受精算状況出力</a></li>';
+					break;
+			}
+		}
+
+		$list .= '</ul></li>';
+		$sublist .= '</div>';
+		$csv .= '</ul></li>';
+		$subcsv .= '</div>';
+
+		$this->MenuList = $list . $csv;
+		$this->SubMenuList = $sublist . $subcsv;
 
 		return true;
 	}
@@ -254,7 +390,7 @@ class Common
 			// CSV出力
 			header("Content-Type: application/octet-stream");
 			header("Content-Disposition: attachment; filename=$csv_file");
-			print(mb_convert_encoding($csv_data, 'SJIS'));
+			print(mb_convert_encoding($csv_data, 'SJIS-WIN'));
 		}
 		catch(Exception $e)
 		{

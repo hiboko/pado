@@ -95,6 +95,7 @@ class AnalysisController extends Zend_Controller_Action
 				case 1:
 					//ブロック表出力処理
 					if(!self::printBlockExcel($arrPram)) { $this->view->ErrMsg = $clsComConst::ERR_MSG_CSV; }
+					break;
 				case 2:
 					//地区表
 					if(!self::printAreaExcel($arrPram)) { $this->view->ErrMsg = $clsComConst::ERR_MSG_CSV; }
@@ -177,6 +178,8 @@ class AnalysisController extends Zend_Controller_Action
 		$this->view->Type = $clsCommon->ConverDisp($type);
 		$this->view->Report = $clsCommon->ConverDisp($report);
 		$this->view->Token = $clsCommon->ConverDisp($token);
+		$this->view->List = $clsCommon->GetMenuList();
+		$this->view->SubList = $clsCommon->GetSubMenuList();
 	}
 
 	/**
@@ -253,6 +256,8 @@ class AnalysisController extends Zend_Controller_Action
 		$this->view->ToYmd = $clsCommon->ConverDisp($toymd);
 		$this->view->Token = $clsCommon->ConverDisp($token);
 		$this->view->Check = $clsCommon->ConverDisp($check);
+		$this->view->List = $clsCommon->GetMenuList();
+		$this->view->SubList = $clsCommon->GetSubMenuList();
 
 		//出力ボタン押下時
 		if($click == 1 && isset($check))
@@ -1281,5 +1286,7 @@ class AnalysisController extends Zend_Controller_Action
 		$this->view->KindName = $clsCommon->ConverDisp($kindnm);
 		$this->view->AdvertisingName = $clsCommon->ConverDisp($advertisingnm);
 		$this->view->Token = $clsCommon->ConverDisp($token);
+		$this->view->List = $clsCommon->GetMenuList();
+		$this->view->SubList = $clsCommon->GetSubMenuList();
     }
 }

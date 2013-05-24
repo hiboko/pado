@@ -31,6 +31,17 @@
           <actionMethod actionName="code"/>
           <actionMethod actionName="client"/>
         </controllerFile>
+        <controllerFile controllerName="Printcsv">
+          <actionMethod actionName="index"/>
+          <actionMethod actionName="businessnamelist"/>
+          <actionMethod actionName="receiveadjustedamount"/>
+          <actionMethod actionName="customerservicetotal"/>
+          <actionMethod actionName="seditionlist"/>
+          <actionMethod actionName="caseregistersituation"/>
+          <actionMethod actionName="pointadjustedsituation"/>
+          <actionMethod actionName="oldpointadjustedsituation"/>
+          <actionMethod actionName="advanceadjustedsituation"/>
+        </controllerFile>
       </controllersDirectory>
       <formsDirectory enabled="false"/>
       <layoutsDirectory enabled="false"/>
@@ -76,6 +87,17 @@
           </viewControllerScriptsDirectory>
           <viewControllerScriptsDirectory forControllerName="Commondialog">
             <viewScriptFile forActionName="client"/>
+          </viewControllerScriptsDirectory>
+          <viewControllerScriptsDirectory forControllerName="Printcsv">
+            <viewScriptFile forActionName="index"/>
+            <viewScriptFile forActionName="businessnamelist"/>
+            <viewScriptFile forActionName="receiveadjustedamount"/>
+            <viewScriptFile forActionName="customerservicetotal"/>
+            <viewScriptFile forActionName="seditionlist"/>
+            <viewScriptFile forActionName="caseregistersituation"/>
+            <viewScriptFile forActionName="pointadjustedsituation"/>
+            <viewScriptFile forActionName="oldpointadjustedsituation"/>
+            <viewScriptFile forActionName="advanceadjustedsituation"/>
           </viewControllerScriptsDirectory>
         </viewScriptsDirectory>
         <viewHelpersDirectory/>
