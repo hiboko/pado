@@ -48,6 +48,10 @@ class ComConst
 	const PRINTCSV_OLD_POINT_ADJUSTEDSITUATION_URL = "http://kikansubtest.pado.jp:8081/printcsv/oldpointadjustedsituation/";
 	//前受精算状況出力
 	const PRINTCSV_ADVANCE_ADJUSTED_SITUATION_URL = "http://kikansubtest.pado.jp:8081/printcsv/advanceadjustedsituation/";
+	//システム情報検索
+	const ANALYSIS_SYSTEM_DATA_URL = "http://kikansubtest.pado.jp:8081/analysis/sysytemdata/";
+	//システム情報更新・削除
+	const ANALYSIS_SYSTEM_DATA_DETAIL_URL = "http://kikansubtest.pado.jp:8081/analysis/sysytemdatadetail/";
 
 	/**********************************************************************************************
 	 * DB
@@ -106,7 +110,11 @@ class ComConst
 	const PGID_PRINTCSV_OLD_POINT_ADJUSTEDSITUATION = 9;
 	//前受精算状況出力
 	const PGID_PRINTCSV_ADVANCE_ADJUSTED_SITUATION = 10;
-
+	//システム情報検索
+	const PGID_ANALYSIS_SYSTEM_DATA = 11;
+	//システム情報更新・削除
+	const PGID_ANALYSIS_SYSTEM_DATA_DETAIL = 12;
+	
 	/**********************************************************************************************
 	 * 判定コード
 	 **********************************************************************************************/
@@ -118,6 +126,8 @@ class ComConst
 	const CODE_SHUBETU = 3;
 	//掲載版
 	const CODE_KEISAIHAN = 4;
+	//権限
+	const CODE_ROLE = 5;
 
 	//契約主
 	const CODE_CONTRACT = 1;
@@ -132,6 +142,15 @@ class ComConst
 	const CODE_CLAIM_EMPLOYEE = 2;
 	//顧客検索 営業担当者
 	const CODE_CLIENT_EMPLOYEE = 3;
+	//売上担当者
+	const CODE_SALES_EMPLOYEE = 4;
+
+	//新規登録
+	const CODE_INSERT = 1;
+	//更新
+	const CODE_UPDATE = 2;
+	//削除
+	const CODE_DELETE = 3;
 
 	//部数表EXCEL出力コード
 	const CODE_CIRCULATION_EXCEL = 'BUSUHYO_XLS_KEISAIHAN_CD';

@@ -100,6 +100,14 @@ class SqlPointAdjustedSituation
 			$sql .= "      FROM DR_TBL_KESIKOMI WITH(NOLOCK) ";
 			$sql .= "     WHERE KAISHA_CD = '" . $arrParam["kcd"] . "'";
 			$sql .= "       AND ISNULL(DEL_FLG, 0) = 0 AND ISNULL(TORIKESI_FLG, 0) = 0 ";
+			if(isset($arrParam["sstartdate"]) && !empty($arrParam["sstartdate"]))
+			{
+				$sql .= "   AND CONVERT(VARCHAR(10), KESIKOMI_YMD, 111) >= '" . $arrParam["sstartdate"] . "'";
+			}
+			if(isset($arrParam["senddate"]) && !empty($arrParam["senddate"]))
+			{
+				$sql .= "   AND CONVERT(VARCHAR(10), KESIKOMI_YMD, 111) <= '" . $arrParam["senddate"] . "'";
+			}
 			$sql .= "     GROUP BY KAISHA_CD, SEIKYU_NO, SEIKYU_DTL_RENBAN ";
 			$sql .= "  ) AS E ";
 			$sql .= "    ON B.KAISHA_CD = E.KAISHA_CD ";
@@ -119,6 +127,14 @@ class SqlPointAdjustedSituation
 			$sql .= "       AND ISNULL(F3.DEL_FLG, 0) = 0 ";
 			$sql .= "     WHERE F2.KAISHA_CD = '" . $arrParam["kcd"] . "'";
 			$sql .= "       AND ISNULL(F2.DEL_FLG, 0) = 0 AND ISNULL(F2.TORIKESI_FLG, 0) = 0 ";
+			if(isset($arrParam["sstartdate"]) && !empty($arrParam["sstartdate"]))
+			{
+				$sql .= "   AND CONVERT(VARCHAR(10), F2.KESIKOMI_YMD, 111) >= '" . $arrParam["sstartdate"] . "'";
+			}
+			if(isset($arrParam["senddate"]) && !empty($arrParam["senddate"]))
+			{
+				$sql .= "   AND CONVERT(VARCHAR(10), F2.KESIKOMI_YMD, 111) <= '" . $arrParam["senddate"] . "'";
+			}
 			$sql .= "     GROUP BY F2.KAISHA_CD, F2.SEIKYU_NO ";
 			$sql .= "  ) AS F ";
 			$sql .= "    ON B.KAISHA_CD = F.KAISHA_CD ";
@@ -141,6 +157,14 @@ class SqlPointAdjustedSituation
 			
 			$sql .= "     WHERE G2.KAISHA_CD = '" . $arrParam["kcd"] . "'";
 			$sql .= "       AND ISNULL(G2.DEL_FLG, 0) = 0 AND ISNULL(G2.TORIKESI_FLG, 0) = 0 ";
+			if(isset($arrParam["sstartdate"]) && !empty($arrParam["sstartdate"]))
+			{
+				$sql .= "   AND CONVERT(VARCHAR(10), G2.KESIKOMI_YMD, 111) >= '" . $arrParam["sstartdate"] . "'";
+			}
+			if(isset($arrParam["senddate"]) && !empty($arrParam["senddate"]))
+			{
+				$sql .= "   AND CONVERT(VARCHAR(10), G2.KESIKOMI_YMD, 111) <= '" . $arrParam["senddate"] . "'";
+			}
 			$sql .= "     GROUP BY G2.KAISHA_CD, G2.SEIKYU_NO ";
 			$sql .= "  ) AS G ";
 			$sql .= "    ON B.KAISHA_CD = G.KAISHA_CD ";
@@ -274,6 +298,14 @@ class SqlPointAdjustedSituation
 			$sql .= "      FROM DR_TBL_KESIKOMI WITH(NOLOCK) ";
 			$sql .= "     WHERE KAISHA_CD = '" . $arrParam["kcd"] . "'";
 			$sql .= "       AND ISNULL(DEL_FLG, 0) = 0 AND ISNULL(TORIKESI_FLG, 0) = 0 ";
+			if(isset($arrParam["sstartdate"]) && !empty($arrParam["sstartdate"]))
+			{
+				$sql .= "   AND CONVERT(VARCHAR(10), KESIKOMI_YMD, 111) >= '" . $arrParam["sstartdate"] . "'";
+			}
+			if(isset($arrParam["senddate"]) && !empty($arrParam["senddate"]))
+			{
+				$sql .= "   AND CONVERT(VARCHAR(10), KESIKOMI_YMD, 111) <= '" . $arrParam["senddate"] . "'";
+			}
 			$sql .= "     GROUP BY KAISHA_CD, SEIKYU_NO, SEIKYU_DTL_RENBAN ";
 			$sql .= "  ) AS E ";
 			$sql .= "    ON B.KAISHA_CD = E.KAISHA_CD ";
@@ -293,6 +325,14 @@ class SqlPointAdjustedSituation
 			$sql .= "       AND ISNULL(F3.DEL_FLG, 0) = 0 ";
 			$sql .= "     WHERE F2.KAISHA_CD = '" . $arrParam["kcd"] . "'";
 			$sql .= "       AND ISNULL(F2.DEL_FLG, 0) = 0 AND ISNULL(F2.TORIKESI_FLG, 0) = 0 ";
+			if(isset($arrParam["sstartdate"]) && !empty($arrParam["sstartdate"]))
+			{
+				$sql .= "   AND CONVERT(VARCHAR(10), F2.KESIKOMI_YMD, 111) >= '" . $arrParam["sstartdate"] . "'";
+			}
+			if(isset($arrParam["senddate"]) && !empty($arrParam["senddate"]))
+			{
+				$sql .= "   AND CONVERT(VARCHAR(10), F2.KESIKOMI_YMD, 111) <= '" . $arrParam["senddate"] . "'";
+			}
 			$sql .= "     GROUP BY F2.KAISHA_CD, F3.DENPYO_NO, F3.MEISAI_NO ";
 			$sql .= "  ) AS F ";
 			$sql .= "    ON B.KAISHA_CD = F.KAISHA_CD ";
@@ -316,6 +356,14 @@ class SqlPointAdjustedSituation
 			
 			$sql .= "     WHERE G2.KAISHA_CD = '" . $arrParam["kcd"] . "'";
 			$sql .= "       AND ISNULL(G2.DEL_FLG, 0) = 0 AND ISNULL(G2.TORIKESI_FLG, 0) = 0 ";
+			if(isset($arrParam["sstartdate"]) && !empty($arrParam["sstartdate"]))
+			{
+				$sql .= "   AND CONVERT(VARCHAR(10), G2.KESIKOMI_YMD, 111) >= '" . $arrParam["sstartdate"] . "'";
+			}
+			if(isset($arrParam["senddate"]) && !empty($arrParam["senddate"]))
+			{
+				$sql .= "   AND CONVERT(VARCHAR(10), G2.KESIKOMI_YMD, 111) <= '" . $arrParam["senddate"] . "'";
+			}
 			$sql .= "     GROUP BY G2.KAISHA_CD, G3.DENPYO_NO, G3.MEISAI_NO ";
 			$sql .= "  ) AS G ";
 			$sql .= "    ON B.KAISHA_CD = G.KAISHA_CD ";

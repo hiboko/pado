@@ -424,6 +424,7 @@ class SqlMstShain
 			$sql .= " INNER JOIN M_MROLL AS B WITH(NOLOCK) ";
 			$sql .= "    ON A.KAISHA_CD = B.KAISHA_CD ";
 			$sql .= "   AND A.ROLE_ID = B.ROLE_ID ";
+			$sql .= "   AND ISNULL(B.DEL_FLG, 0) = 0  ";
 			$sql .= " WHERE ISNULL(A.DEL_FLG, 0) = 0 ";
 			$sql .= "   AND A.KAISHA_CD = '" . $arrParam["kcd"] . "' ";
 			$sql .= "   AND A.SHAIN_CD = '" . $arrParam["id"] . "' ";

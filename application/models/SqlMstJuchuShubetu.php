@@ -52,7 +52,6 @@ class SqlMstJuchuShubetu
 			$sql .= "      ,DAIBUNRUI_NM AS codename ";
 			$sql .= "  FROM AD_VIEW_MST_DAIBUNRUI WITH(NOLOCK) ";
 			$sql .= " WHERE KAISHA_CD = '999'";
-			$sql .= "   AND ISNULL(DEL_FLG, 0) = 0 AND ISNULL(MUKOU_FLG, 0) = 0 ";
 			if(isset($arrParam["serch"]) && !empty($arrParam["serch"]))
 			{
 				$sql .= "   AND (DAIBUNRUI_CD like '%" . $arrParam["serch"] . "%'";
@@ -111,9 +110,7 @@ class SqlMstJuchuShubetu
 			$sql .= " INNER JOIN AD_VIEW_MST_CHUBUNRUI AS C WITH(NOLOCK)";
 			$sql .= "    ON C.DAIBUNRUI_CD = D.DAIBUNRUI_CD";
 			$sql .= "   AND C.KAISHA_CD = '999'";
-			$sql .= "   AND ISNULL(C.DEL_FLG, 0) = 0 AND ISNULL(C.MUKOU_FLG, 0) = 0 ";
 			$sql .= " WHERE D.KAISHA_CD = '999' ";
-			$sql .= "   AND ISNULL(D.DEL_FLG, 0) = 0 AND ISNULL(D.MUKOU_FLG, 0) = 0 ";
 			if(isset($arrParam["dcd"]) && !empty($arrParam["dcd"]))
 			{
 				$sql .= "  AND D.DAIBUNRUI_CD = '" . $arrParam["dcd"] . "'";

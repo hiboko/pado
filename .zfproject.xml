@@ -39,7 +39,6 @@
           <actionMethod actionName="seditionlist"/>
           <actionMethod actionName="caseregistersituation"/>
           <actionMethod actionName="pointadjustedsituation"/>
-          <actionMethod actionName="oldpointadjustedsituation"/>
           <actionMethod actionName="advanceadjustedsituation"/>
         </controllerFile>
       </controllersDirectory>
@@ -96,7 +95,6 @@
             <viewScriptFile forActionName="seditionlist"/>
             <viewScriptFile forActionName="caseregistersituation"/>
             <viewScriptFile forActionName="pointadjustedsituation"/>
-            <viewScriptFile forActionName="oldpointadjustedsituation"/>
             <viewScriptFile forActionName="advanceadjustedsituation"/>
           </viewControllerScriptsDirectory>
         </viewScriptsDirectory>

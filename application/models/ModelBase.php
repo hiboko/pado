@@ -53,12 +53,13 @@ class ModelBase
 	}
 
 	/**
-	 * クエリー実行(配列返却)
+	 * クエリー実行
 	 * 
-	 * @param  $sql   SQLソース
-	 * @return array  結果データ配列
+	 * @param  $sql      SQLソース
+	 *         $arrflg   true:データ取得時、false:データ取得以外
+	 * @return array  true:成功、false:失敗
 	 */
-	public function Query($query)
+	public function Query($query, $arrflg=true)
 	{
 		$query = mb_convert_encoding($query, "SJIS-win", "UTF-8");
 
@@ -66,9 +67,11 @@ class ModelBase
 
 		if ($ret === false) { return false; }
 
-		while( $row = mssql_fetch_array($ret)) { $this->RetData[] = $row; }
-
-		mb_convert_variables('UTF-8', 'SJIS-win', $this->RetData);
+		if($arrflg)
+		{
+			while( $row = mssql_fetch_array($ret)) { $this->RetData[] = $row; }
+			mb_convert_variables('UTF-8', 'SJIS-win', $this->RetData);
+		}
 
 		return true;
 	}

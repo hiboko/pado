@@ -43,6 +43,11 @@ function onClickSelect($type)
 			window.opener.document.frmClient.txtEmployeeCd.value = row.employeeid;
 			window.opener.document.frmClient.txtEmployeeName.value = row.employeename;
 		}
+		else if ($type == <?= $this->code_sales_employee ?>)
+		{
+			window.opener.document.frmMain.txtSalesCd.value = row.employeeid;
+			window.opener.document.frmMain.txtSalesName.value = row.employeename;
+		}
 
 		window.close();
 	}

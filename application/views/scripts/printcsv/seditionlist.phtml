@@ -54,6 +54,12 @@ $(function()
 	});
 });
 
+function btnEmployee_onclick($type)
+{
+	var child = "<?= $this->cdialog_employee_url ?>type/" + $type + "/?token=<?= $this->Token ?>"; 
+	window.open(child,"employeechild","width=420,height=620,scrollbars=no");
+}
+
 function btnCsv_onclick()
 {
 	if(window.confirm('出力します。よろしいですか？'))
@@ -94,7 +100,7 @@ function btnCsv_onclick()
 				<input type="hidden" id="print" name="print">
 
 				<!-- #formSubArea start -->
-				<div id="formSubArea" style="width:350px;">
+				<div id="formSubArea" style="width:600px;">
 					<table>
 						<tr>
 							<th width="100">受注伝票納期</th>
@@ -116,9 +122,17 @@ function btnCsv_onclick()
 								<input type="text" name="outsourcenm" id="txtOutSourceName" value="<?= $this->OutSourceName ?>" maxlength="50" style="width:220px;" />
 							</td>
 						</tr>
+						<tr>
+							<th>担当者</th>
+							<td>
+								<input type="text" name="connectcd" id="txtConnectCd" value="<?= $this->ConnectCd ?>" onChange="this.form.submit();" maxlength="6" style="width:70px;" />
+								<input type="button" id="btnConnect" value="参照" onclick="btnEmployee_onclick(<?= $this->code_connect_employee ?>)" />
+								<input type="text" class="readonly" readonly name="connectnm" id="txtConnectName" value="<?= $this->ConnectName ?>" maxlength="100" style="width:310px;" />
+							</td>
+						</tr>
 					</table>
-					<div id="formBtnArea" class="formBtnArea" style="width:350px;">
-						<table width="350px">
+					<div id="formBtnArea" class="formBtnArea" style="width:600px;">
+						<table width="580px">
 							<tr>
 								<td>
 									<input class="button" type="button" name="btnCsv" id="btnCsv" value="出力" onclick="btnCsv_onclick()">

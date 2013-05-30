@@ -74,9 +74,9 @@ jQuery(document).ready(function()
 	$('#list').jqGrid({
 		data     : arrdata,
 		datatype : 'local',
-		colNames : [ '契約主','掲載版/掲載エリア','掲載日/掲載号','商品名/サイズ','受注番号','売価/制作費','小計/消費税','総額/粗利','受注担当者','入金予定日'],
+		colNames : [ '契約主','掲載版/掲載エリア','掲載日/掲載号','商品名/サイズ','受注番号','売価/制作費','小計/消費税','総額/粗利','受注担当者','売上担当者','入金予定日'],
 		colModel : [ 
-			{ name : 'contract' , index : 'contract', width:60, align:'center',
+			{ name : 'contract' , index : 'contract', width:58, align:'center',
 					formatter:function breakLine(cellvalue, options, rowObject)
 					{ return cellvalue.replace(/;/g,'<br />');}
 			},
@@ -84,7 +84,7 @@ jQuery(document).ready(function()
 					formatter:function breakLine(cellvalue, options, rowObject)
 					{ return cellvalue.replace(/;/g,'<br />');}
 			},
-			{ name : 'reportno' , index : 'reportno', width:40, align:'center',
+			{ name : 'reportno' , index : 'reportno', width:32, align:'center',
 					formatter:function breakLine(cellvalue, options, rowObject)
 					{ return cellvalue.replace(/;/g,'<br />');}
 			},
@@ -92,24 +92,28 @@ jQuery(document).ready(function()
 					formatter:function breakLine(cellvalue, options, rowObject)
 					{ return cellvalue.replace(/;/g,'<br />');}
 			},
-			{ name : 'seq' , index : 'seq', width:40, align:'center'},
-			{ name : 'rprice' , index : 'rprice', width:30, align:'right', 
+			{ name : 'seq' , index : 'seq', width:35, align:'center'},
+			{ name : 'rprice' , index : 'rprice', width:28, align:'right', 
 					formatter:function breakLine(cellvalue, options, rowObject)
 					{ return cellvalue.replace(/;/g,'<br />');}
 			},
-			{ name : 'pprice' , index : 'pprice', width:30, align:'right',
+			{ name : 'pprice' , index : 'pprice', width:28, align:'right',
 					formatter:function breakLine(cellvalue, options, rowObject)
 					{ return cellvalue.replace(/;/g,'<br />');}
 			},
-			{ name : 'price' , index : 'price', width:30, align:'right',
+			{ name : 'price' , index : 'price', width:28, align:'right',
 					formatter:function breakLine(cellvalue, options, rowObject)
 					{ return cellvalue.replace(/;/g,'<br />');}
 			},
-			{ name : 'charge' , index : 'charge', width:30, align:'center',
+			{ name : 'charge' , index : 'charge', width:40, align:'center',
 					formatter:function breakLine(cellvalue, options, rowObject)
 					{ return cellvalue.replace(/;/g,'<br />');}
 			},
-			{ name : 'receivedate' , index : 'receivedate', width:30, align:'center'}
+			{ name : 'sales' , index : 'sales', width:40, align:'center',
+					formatter:function breakLine(cellvalue, options, rowObject)
+					{ return cellvalue.replace(/;/g,'<br />');}
+			},
+			{ name : 'receivedate' , index : 'receivedate', width:28, align:'center'}
 		],
 		caption     : '受注履歴一覧',
 		rowTotal    : 1000,
@@ -182,6 +186,12 @@ jQuery(document).ready(function()
 								<input type="text" name="advertisercd" id="txtAdvertiserCd" value="<?= $this->AdvertiserCd ?>" onChange="this.form.submit();" maxlength="8" style="width:70px;" />
 								<input type="button" id="btnAdvertiser" value="参照" onclick="btnClient_onclick(<?= $this->code_advertiser ?>)" />
 								<input type="text" class="readonly" readonly name="advertisernm" id="txtAdvertiserName" value="<?= $this->AdvertiserName ?>" maxlength="100" style="width:310px;" />
+							</td>
+							<th>売上担当者</th>
+							<td>
+								<input type="text" name="salescd" id="txtSalesCd" value="<?= $this->SalesCd ?>" onChange="this.form.submit();" maxlength="8" style="width:70px;" />
+								<input type="button" id="btnSales" value="参照" onclick="btnEmployee_onclick(<?= $this->code_sales_employee ?>)" />
+								<input type="text" class="readonly" readonly name="salesnm" id="txtSalesName" value="<?= $this->SalesName ?>" maxlength="100" style="width:310px;" />
 							</td>
 						</tr>
 						<tr>

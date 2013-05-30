@@ -60,6 +60,11 @@ function onClickSelect($type)
 			window.opener.document.frmMain.txtReportCd.value = row.codeid;
 			window.opener.document.frmMain.txtReportName.value = row.codename;
 		}
+		else if ($type == <?= $this->code_role ?>)
+		{
+			window.opener.document.frmClient.txtRoleId.value = row.codeid;
+			window.opener.document.frmClient.txtRoleName.value = row.codename;
+		}
 
 		window.close();
 	}
@@ -109,6 +114,7 @@ jQuery(document).ready(function()
 
 	<form name="frmCode" action="code" method="post">
 		<input type="hidden" name="type" value="<?= $this->Type ?>">
+		<input type="hidden" name="kcd" value="<?= $this->Kaisyacd ?>">
 		<input type="hidden" name="dcd" value="<?= $this->DCode ?>">
 		<input type="hidden" name="ccd" value="<?= $this->CCode ?>">
 		<input type="hidden" name="token" value="<?= $this->Token ?>">

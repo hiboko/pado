@@ -571,7 +571,9 @@ class AnalysisController extends Zend_Controller_Action
 		$this->clsComExcel->SetCellValue($arrData);
 
 		//改ページ情報設定
-		$this->clsComExcel->SetBreakPage('A'. ($perow + 1), 'P'. ($perow + 1));
+		//$this->clsComExcel->SetBreakPage('A'. ($perow + 1), 'P'. ($perow + 1));
+		//2012.5.28 TK UPD
+		$this->clsComExcel->SetBreakPage('A'. ($perow), 'P'. ($perow));
 	}
 
 	/**
@@ -868,7 +870,9 @@ class AnalysisController extends Zend_Controller_Action
 		$this->clsComExcel->SetCellValue($arrData);
 
 		//改ページ情報設定
-		$this->clsComExcel->SetBreakPage('A'. ($perow + 1), 'K'. ($perow + 1));
+		//$this->clsComExcel->SetBreakPage('A'. ($perow + 1), 'K'. ($perow + 1));
+		//2012.5.28 TK UPD
+		$this->clsComExcel->SetBreakPage('A'. ($perow), 'K'. ($perow));
 	}
 
 	/**
@@ -1010,6 +1014,8 @@ class AnalysisController extends Zend_Controller_Action
 		$claimantnm = $clsCommon->SetParam($this->getRequest(), "claimantnm");			//請求先名
 		$advertisercd = $clsCommon->SetParam($this->getRequest(), "advertisercd");		//広告主コード
 		$advertisernm = $clsCommon->SetParam($this->getRequest(), "advertisernm");		//広告主名
+		$salescd = $clsCommon->SetParam($this->getRequest(), "salescd");				//売上担当者コード
+		$salesnm = $clsCommon->SetParam($this->getRequest(), "salesnm");				//売上担当者名
 		$connectcd = $clsCommon->SetParam($this->getRequest(), "connectcd");			//自社取引担当者コード
 		$connectnm = $clsCommon->SetParam($this->getRequest(), "connectnm");			//自社取引担当者名
 		$claimcd = $clsCommon->SetParam($this->getRequest(), "claimcd");				//自社請求担当者コード
@@ -1048,6 +1054,7 @@ class AnalysisController extends Zend_Controller_Action
 			if(isset($contractcd)) { $clsParamCheck->ChkNumeric($contractcd, "契約主コード"); }
 			if(isset($claimantcd)) { $clsParamCheck->ChkNumeric($claimantcd, "請求先コード"); }
 			if(isset($advertisercd)) { $clsParamCheck->ChkNumeric($advertisercd, "広告主コード"); }
+			if(isset($salescd)) { $clsParamCheck->ChkNumeric($salescd, "売上担当者コード"); }
 			if(isset($connectcd)) { $clsParamCheck->ChkNumeric($connectcd, "自社取引担当者コード"); }
 			if(isset($claimcd)) { $clsParamCheck->ChkNumeric($claimcd, "自社請求担当者コード"); }
 			if(isset($reportcd)) { $clsParamCheck->ChkNumeric($reportcd, "掲載版コード"); }
@@ -1070,7 +1077,7 @@ class AnalysisController extends Zend_Controller_Action
 			{
 				//パラメータ生成
 				$arrPram = array("kcd" => $session->kcd, "contractcd" => $contractcd, "claimantcd" => $claimantcd , 
-								 "advertisercd" => $advertisercd, "connectcd" => $connectcd, "claimcd" => $claimcd, 
+								 "advertisercd" => $advertisercd, "salescd" => $salescd, "connectcd" => $connectcd, "claimcd" => $claimcd, 
 								 "reportcd" => $reportcd, "dstartdate" => $dstartdate, "denddate" => $denddate, 
 								 "bclasscd" => $bclasscd, "mclasscd" => $mclasscd, "kindcd" => $kindcd, "advertisingnm" => $advertisingnm);
 
@@ -1093,7 +1100,7 @@ class AnalysisController extends Zend_Controller_Action
 			if(count($grid) > 0)
 			{
 				//CSV出力処理
-				$clsCommon->SetCsv("受注履歴", $grid, "契約主コード, 契約主名, 掲載版, 掲載エリア, 掲載日, 掲載号, 商品名, サイズ, 受注番号, 売価, 制作費, 小計, 消費税, 総額, 粗利, 受注担当者コード, 受注担当者名, 入金予定日");
+				$clsCommon->SetCsv("受注履歴", $grid, "契約主コード, 契約主名, 掲載版, 掲載エリア, 掲載日, 掲載号, 商品名, サイズ, 受注番号, 売価, 制作費, 小計, 消費税, 総額, 粗利, 受注担当部署, 受注担当者, 売上担当部署, 売上担当者, 入金予定日");
 				exit();
 			}
 			else
@@ -1108,6 +1115,7 @@ class AnalysisController extends Zend_Controller_Action
 			if(isset($contractcd)) { $clsParamCheck->ChkNumeric($contractcd, "契約主コード"); }
 			if(isset($claimantcd)) { $clsParamCheck->ChkNumeric($claimantcd, "請求先コード"); }
 			if(isset($advertisercd)) { $clsParamCheck->ChkNumeric($advertisercd, "広告主コード"); }
+			if(isset($salescd)) { $clsParamCheck->ChkNumeric($salescd, "売上担当者コード"); }
 			if(isset($connectcd)) { $clsParamCheck->ChkNumeric($connectcd, "自社取引担当者コード"); }
 			if(isset($claimcd)) { $clsParamCheck->ChkNumeric($claimcd, "自社請求担当者コード"); }
 			if(isset($reportcd)) { $clsParamCheck->ChkNumeric($reportcd, "掲載版コード"); }
@@ -1155,6 +1163,17 @@ class AnalysisController extends Zend_Controller_Action
 					if(!isset($advertisernm) || empty($advertisernm)) { $advertisercd = ""; }
 				}
 				else { $advertisernm = ""; }
+
+				if(isset($salescd))
+				{
+					//売上担当者名取得
+					$clsSqlMstShain = new SqlMstShain();
+					$arrPram = array("kcd" => $session->kcd, "cd" => $salescd);
+					$blnRet = $clsSqlMstShain->SelectMstShain($clsComConst::DB_KIKAN , $arrPram);
+					if($blnRet) { $salesnm = $clsSqlMstShain->GetShainName(); }
+					if(!isset($salesnm) || empty($salesnm)) { $salescd = ""; }
+				}
+				else { $salesnm = ""; }
 
 				if(isset($connectcd))
 				{
@@ -1263,6 +1282,7 @@ class AnalysisController extends Zend_Controller_Action
 		$this->view->code_advertiser = $clsComConst::CODE_ADVERTISER;
 		$this->view->code_connect_employee = $clsComConst::CODE_CONNECT_EMPLOYEE;
 		$this->view->code_claim_employee = $clsComConst::CODE_CLAIM_EMPLOYEE;
+		$this->view->code_sales_employee = $clsComConst::CODE_SALES_EMPLOYEE;
 
 		$this->view->ContractCd = $clsCommon->ConverDisp($contractcd);
 		$this->view->ContractName = $clsCommon->ConverDisp($contractnm);
@@ -1270,6 +1290,8 @@ class AnalysisController extends Zend_Controller_Action
 		$this->view->ClaimantName = $clsCommon->ConverDisp($claimantnm);
 		$this->view->AdvertiserCd = $clsCommon->ConverDisp($advertisercd);
 		$this->view->AdvertiserName = $clsCommon->ConverDisp($advertisernm);
+		$this->view->SalesCd = $clsCommon->ConverDisp($salescd);
+		$this->view->SalesName = $clsCommon->ConverDisp($salesnm);
 		$this->view->ConnectCd = $clsCommon->ConverDisp($connectcd);
 		$this->view->ConnectName = $clsCommon->ConverDisp($connectnm);
 		$this->view->ClaimCd = $clsCommon->ConverDisp($claimcd);

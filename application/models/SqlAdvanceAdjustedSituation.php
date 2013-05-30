@@ -30,7 +30,7 @@ class SqlAdvanceAdjustedSituation
 	 * 前受精算状況検索
 	 * 
 	 * @param  $db        データベース
-	 * @param  $arrParam  パラメータ配列(startdate:基準売上日)
+	 * @param  $arrParam  パラメータ配列(kcd:会社CD, startdate:基準売上日)
 	 * @return ture:成功、false:失敗
 	 */
 	public function SelectAdvanceAdjustedSituation($db, $arrParam = array())
@@ -45,6 +45,8 @@ class SqlAdvanceAdjustedSituation
 		try
 		{
 			//パラメーターエラー
+			if(!isset($arrParam["kcd"]) || empty($arrParam["kcd"]))
+			{ throw new Exception('SelectAdvanceAdjustedSituation', $clsComConst::ERR_CODE_400); }
 			if(!isset($arrParam["startdate"]) || empty($arrParam["startdate"]))
 			{ throw new Exception('SelectAdvanceAdjustedSituation', $clsComConst::ERR_CODE_400); }
 
@@ -82,6 +84,7 @@ class SqlAdvanceAdjustedSituation
 			$sql .= "   AND C.KESIKOMI_YMD < '" . $arrParam["startdate"] . "'";
 
 			$sql .= " WHERE ISNULL(A.DEL_FLG, 0) = 0 AND ISNULL(A.TORIKESI_FLG, 0) = 0 ";
+			$sql .= "   AND A.KAISHA_CD ='" .  $arrParam["kcd"] . "'";
 
 			$sql .= " ORDER BY A.KAISHA_CD, A.SEIKYUSAKI_SNO ";
 

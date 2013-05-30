@@ -41,6 +41,7 @@ class CommondialogController extends Zend_Controller_Action
 		//ファイル読み込み
 		require_once dirname(__FILE__) . "/../models/SqlMstJuchuShubetu.php";
 		require_once dirname(__FILE__) . "/../models/SqlMstKeisaihan.php";
+		require_once dirname(__FILE__) . "/../models/SqlMstSyainRoll.php";
 
 		//初期処理
 		$clsCommon = new Common();
@@ -48,11 +49,13 @@ class CommondialogController extends Zend_Controller_Action
 		$clsParamCheck = new ParamCheck();
 		$clsSqlMstJShubetu = new SqlMstJuchuShubetu();
 		$clsSqlMstKeisaihan = new SqlMstKeisaihan();
+		$clsSqlMstSyainRoll = new SqlMstSyainRoll();
 		$arrErr = array();
 		$arrPram = array();
 
 		//パラメータ設定
 		$type = $clsCommon->SetParam($this->getRequest(), "type");		//種別
+		$kcd = $clsCommon->SetParam($this->getRequest(), "kcd");		//会社コード
 		$serch = $clsCommon->SetParam($this->getRequest(), "serch");	//検索項目
 		$dcd = $clsCommon->SetParam($this->getRequest(), "dcd");		//大分類コード
 		$ccd = $clsCommon->SetParam($this->getRequest(), "ccd");		//中分類コード
@@ -60,6 +63,9 @@ class CommondialogController extends Zend_Controller_Action
 
 		//アクセスチェック
 		if(!$clsCommon->ChkAccess($token, $clsComConst::CODE_DIALOG)) { throw new Exception("", $clsComConst::ERR_CODE_403); }
+
+		//セッション情報取得
+		$session = $clsCommon->GetSession();
 
 		//パラメータチェック
 		$clsParamCheck->ChkMust($type, "種別");
@@ -70,6 +76,7 @@ class CommondialogController extends Zend_Controller_Action
 
 		$clsParamCheck = new ParamCheck();
 		$arrErr = array();
+		if(isset($kcd)) { $clsParamCheck->ChkNumeric($kcd, "会社コード"); } else { $kcd = $session->kcd; }
 		if(isset($serch)) { $clsParamCheck->ChkStr($serch, "検索項目"); }
 		if(isset($dcd)) { $clsParamCheck->ChkNumeric($dcd, "大分類コード"); }
 		if(isset($ccd)) { $clsParamCheck->ChkNumeric($ccd, "中分類コード"); }
@@ -82,11 +89,8 @@ class CommondialogController extends Zend_Controller_Action
 		}
 		else
 		{
-			//セッション情報取得
-			$session = $clsCommon->GetSession();
-
 			//パラメータ生成
-			$arrPram = array("serch" => $serch, "dcd" => $dcd ,"ccd" => $ccd ,"kcd" => $session->kcd);
+			$arrPram = array("serch" => $serch, "dcd" => $dcd ,"ccd" => $ccd ,"kcd" => $kcd);
 
 			//コードマスタ検索
 			switch ($type)
@@ -111,6 +115,12 @@ class CommondialogController extends Zend_Controller_Action
 					$blnRet = $clsSqlMstKeisaihan->SelectMstKeisaihan($clsComConst::DB_KIKAN , $arrPram);
 					if($blnRet) { $arrRet = $clsSqlMstKeisaihan->GetData(); }
 					break;
+				case $clsComConst::CODE_ROLE:
+					//権限情報検索
+					$arrPram = array("serch" => $serch, "entry" => "ROLE_NM" ,"kcd" => $kcd);
+					$blnRet = $clsSqlMstSyainRoll->SelectMstSystemData($clsComConst::DB_KIKAN_SUB , $arrPram);
+					if($blnRet) { $arrRet = $clsSqlMstSyainRoll->GetData(); }
+					break;
 			}
 		}
 
@@ -131,6 +141,7 @@ class CommondialogController extends Zend_Controller_Action
 		$this->view->code_chubunrui = $clsComConst::CODE_CHUBUNRUI;
 		$this->view->code_shubetu = $clsComConst::CODE_SHUBETU;
 		$this->view->code_keisaihan = $clsComConst::CODE_KEISAIHAN;
+		$this->view->code_role = $clsComConst::CODE_ROLE;
 		$this->view->Token = $clsCommon->ConverDisp($token);
     }
 
@@ -155,6 +166,7 @@ class CommondialogController extends Zend_Controller_Action
 
 		//パラメータ設定
 		$type = $clsCommon->SetParam($this->getRequest(), "type");		//種別
+		$kcd = $clsCommon->SetParam($this->getRequest(), "kcd");		//会社コード
 		$serch = $clsCommon->SetParam($this->getRequest(), "serch");	//検索項目
 		$fhold = $clsCommon->SetParam($this->getRequest(), "fhold");	//営業拠点コード
 		$post = $clsCommon->SetParam($this->getRequest(), "post");		//部署
@@ -162,6 +174,9 @@ class CommondialogController extends Zend_Controller_Action
 
 		//アクセスチェック
 		if(!$clsCommon->ChkAccess($token, $clsComConst::CODE_DIALOG)) { throw new Exception("", $clsComConst::ERR_CODE_403); }
+
+		//セッション情報取得
+		$session = $clsCommon->GetSession();
 
 		//パラメータチェック
 		$clsParamCheck->ChkMust($type, "種別");
@@ -172,6 +187,7 @@ class CommondialogController extends Zend_Controller_Action
 
 		$clsParamCheck = new ParamCheck();
 		$arrErr = array();
+		if(isset($kcd)) { $clsParamCheck->ChkNumeric($kcd, "会社コード"); } else { $kcd  = $session->kcd; }
 		if(isset($serch)) { $clsParamCheck->ChkStr($serch, "検索項目"); }
 		if(isset($fhold)) { $clsParamCheck->ChkNumeric($fhold, "営業拠点"); }
 		if(isset($post)) { $clsParamCheck->ChkNumeric($post, "部署"); }
@@ -183,12 +199,9 @@ class CommondialogController extends Zend_Controller_Action
 			$this->view->ErrMsg = $msg;
 		}
 
-		//セッション情報取得
-		$session = $clsCommon->GetSession();
-
 		//パラメータ生成
 		if(isset($post)) { $fhold = null; }
-		$arrPram = array("kcd" => $session->kcd, "serch" => $serch, "fhold" => $fhold, "post" => $post);
+		$arrPram = array("kcd" => $kcd, "serch" => $serch, "fhold" => $fhold, "post" => $post);
 
 		//部署検索
 		$blnRet = $clsSqlMstShain->SelectMstBusho($clsComConst::DB_KIKAN , $arrPram);
@@ -229,6 +242,7 @@ class CommondialogController extends Zend_Controller_Action
 
 		//設定処理
 		$this->view->Type = $clsCommon->ConverDisp($type);
+		$this->view->Kaisyacd = $clsCommon->ConverDisp($lcd);
 		$this->view->Token = $clsCommon->ConverDisp($token);
 		$this->view->Seach = $clsCommon->ConverDisp($serch);
 		$this->view->Fhold = $clsCommon->ConverDisp($fhold);
@@ -236,6 +250,7 @@ class CommondialogController extends Zend_Controller_Action
 		$this->view->code_connect_employee = $clsComConst::CODE_CONNECT_EMPLOYEE;
 		$this->view->code_claim_employee = $clsComConst::CODE_CLAIM_EMPLOYEE;
 		$this->view->code_climent_employee = $clsComConst::CODE_CLIENT_EMPLOYEE;
+		$this->view->code_sales_employee = $clsComConst::CODE_SALES_EMPLOYEE;
     }
 
 	/**

@@ -235,7 +235,6 @@ class Common
 			case $clsComConst::PGID_PRINTCSV_S_EDITION_LIST:
 			case $clsComConst::PGID_PRINTCSV_CASE_REGISTERSITUATION:
 			case $clsComConst::PGID_PRINTCSV_POINT_ADJUSTEDSITUATION:
-			case $clsComConst::PGID_PRINTCSV_OLD_POINT_ADJUSTEDSITUATION:
 			case $clsComConst::PGID_PRINTCSV_ADVANCE_ADJUSTED_SITUATION:
 				$csvactive = "active ";
 				break;
@@ -290,11 +289,6 @@ class Common
 					//ぱどPO精算状況出力
 					$csv .= '<li><a href="' . $clsComConst::PRINTCSV_POINT_ADJUSTEDSITUATION_URL . '?token=' . $token . '"><span>ぱどPO精算状況出力</span></a></li>';
 					$subcsv .= '<li><a href="' . $clsComConst::PRINTCSV_POINT_ADJUSTEDSITUATION_URL . '?token=' . $token . '">ぱどPO精算状況出力</a></li>';
-					break;
-				case $clsComConst::PGID_PRINTCSV_OLD_POINT_ADJUSTEDSITUATION:
-					//ぱどPO精算状況出力
-					$csv .= '<li><a href="' . $clsComConst::PRINTCSV_OLD_POINT_ADJUSTEDSITUATION_URL . '?token=' . $token . '"><span>ぱどPO精算状況出力(旧SYS)</span></a></li>';
-					$subcsv .= '<li><a href="' . $clsComConst::PRINTCSV_OLD_POINT_ADJUSTEDSITUATION_URL . '?token=' . $token . '">ぱどPO精算状況出力(旧SYS)</a></li>';
 					break;
 				case $clsComConst::PGID_PRINTCSV_ADVANCE_ADJUSTED_SITUATION:
 					//前受精算状況出力

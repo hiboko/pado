@@ -30,8 +30,8 @@ class SqlSEditionList
 	 * S版管理表情報検索
 	 * 
 	 * @param  $db        データベース
-	 * @param  $arrParam  パラメータ配列(kcd:会社コード, startdate:受注伝票納期(開始), enddate:受注伝票納期(終了),
-	 *                                   sstartdate:S版伝票納期(開始), senddate:S版伝票納期(終了), outsourcenm:外注先名)
+	 * @param  $arrParam  パラメータ配列(kcd:会社コード, startdate:受注伝票納期(開始), enddate:受注伝票納期(終了), sstartdate:S版伝票納期(開始), 
+	 *                                   senddate:S版伝票納期(終了), outsourcenm:業者名, connectcd:担当者コード)
 	 * @return ture:成功、false:失敗
 	 */
 	public function SelectSEditionList($db, $arrParam = array())
@@ -150,7 +150,6 @@ class SqlSEditionList
 			$sql .= "  ) AS C ";
 			$sql .= "    ON B.KAISHA_CD = C.KAISHA_CD ";
 			$sql .= "   AND B.RIEKI_KANRI_NO = C.RIEKI_KANRI_NO ";
-
 			$sql .= " WHERE A.KAISHA_CD = '" . $arrParam["kcd"] . "'";
 			$sql .= "   AND ISNULL(A.DEL_FLG, 0) = 0 AND ISNULL(A.TORIKESI_FLG, 0) = 0 "; 
 			if(isset($arrParam["sstartdate"]) && !empty($arrParam["sstartdate"]))
@@ -168,6 +167,10 @@ class SqlSEditionList
 			if(isset($arrParam["enddate"]) && !empty($arrParam["enddate"]))
 			{
 				$sql .= "   AND C.NOUKI_YMD <= '" . $arrParam["enddate"] . "'";
+			}
+			if(isset($arrParam["connectcd"]) && !empty($arrParam["connectcd"]))
+			{
+				$sql .= "   AND C.TANTO_SHA_NO = '" . $arrParam["connectcd"] ."'";
 			}
 
 			$sql .= " ORDER BY A.RIEKI_KANRI_NO, B.RIEKI_KANRI_MEISAI_NO ";

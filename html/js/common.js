@@ -100,7 +100,7 @@ function setFormatDate($obj)
 		num += "";
 		if (num.length === 1) { num = "0" + num; }
 		return num;
-	};
+	}
 
 	$obj.value = (date.getFullYear() + "/" + toDoubleDigits(date.getMonth() + 1) + "/" + toDoubleDigits(date.getDate()));
 }
@@ -116,7 +116,6 @@ function setFormatMonth($obj)
 
 	if($obj.value.split("/").length == 2)
 	{
-		if($obj.value.length != 7){ alert("有効な桁数ではありません。");  return false; }
 		if(isNaN($obj.value.substr(0, 4))){ alert("有効な整数ではありません。");  return false; }
 		if(isNaN($obj.value.substr(5, 2))){ alert("有効な整数ではありません。");  return false; }
 		$obj.value = $obj.value + "/01";
@@ -137,7 +136,7 @@ function setFormatMonth($obj)
 		num += "";
 		if (num.length === 1) { num = "0" + num; }
 		return num;
-	};
+	}
 
 	$obj.value = (date.getFullYear() + "/" + toDoubleDigits(date.getMonth() + 1));
 }

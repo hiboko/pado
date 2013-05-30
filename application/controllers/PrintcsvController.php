@@ -63,6 +63,7 @@ class PrintcsvController extends Zend_Controller_Action
 			if(isset($startdate)) { $clsParamCheck->ChkDate($startdate, "納期(開始)"); }
 			if(isset($enddate)) { $clsParamCheck->ChkDate($enddate, "納期(終了)"); }
 			$arrErr = $clsParamCheck->GetErrMsg();
+			$print = "";
 
 			if(count($arrErr) > 0)
 			{
@@ -137,6 +138,7 @@ class PrintcsvController extends Zend_Controller_Action
 			if(isset($sstartdate)) { $clsParamCheck->ChkDate($sstartdate, "請求残開始日"); }
 			if(isset($nstartdate)) { $clsParamCheck->ChkDate($nstartdate, "入金残開始日"); }
 			$arrErr = $clsParamCheck->GetErrMsg();
+			$print = "";
 
 			if(count($arrErr) > 0)
 			{
@@ -211,6 +213,7 @@ class PrintcsvController extends Zend_Controller_Action
 			if(isset($startdate)) { $clsParamCheck->ChkDate($startdate, "カスタマー対応日(開始)"); }
 			if(isset($enddate)) { $clsParamCheck->ChkDate($enddate, "カスタマー対応日(終了)"); }
 			$arrErr = $clsParamCheck->GetErrMsg();
+			$print = "";
 
 			if(count($arrErr) > 0)
 			{
@@ -254,6 +257,7 @@ class PrintcsvController extends Zend_Controller_Action
     {
 		//ファイル読み込み
 		require_once dirname(__FILE__) . "/../models/SqlSEditionList.php";
+		require_once dirname(__FILE__) . "/../models/SqlMstShain.php";
 
 		//初期処理
 		$clsCommon = new Common();
@@ -270,6 +274,7 @@ class PrintcsvController extends Zend_Controller_Action
 		$sstartdate = $clsCommon->SetParam($this->getRequest(), "sstartdate");		//S版伝票納期(開始)
 		$senddate = $clsCommon->SetParam($this->getRequest(), "senddate");			//S版伝票納期(終了)
 		$outsourcenm = $clsCommon->SetParam($this->getRequest(), "outsourcenm");	//業者名
+		$connectcd = $clsCommon->SetParam($this->getRequest(), "connectcd");		//担当者コード
 		$print = $clsCommon->SetParam($this->getRequest(), "print");				//出力フラグ
 		$token = $clsCommon->SetParam($this->getRequest(), "token");
 
@@ -277,19 +282,24 @@ class PrintcsvController extends Zend_Controller_Action
 		if(!$clsCommon->ChkAccess($token, '', '', $clsComConst::PGID_PRINTCSV_S_EDITION_LIST))
 		{ throw new Exception("", $clsComConst::ERR_CODE_403); }
 
+		//セッション情報取得
+		$session = $clsCommon->GetSession();
+
 		//CSV出力ボタン押下時
 		if($print == 1)
 		{
 			//パラメータチェック
 			if((!isset($startdate) || !isset($enddate)) && (!isset($sstartdate) || !isset($senddate)))
 			{ $msg .= "受注伝票納期かS版伝票納期を入力してください。</br>"; $blnErr = false; }
-
+			
 			if(isset($startdate)) { $clsParamCheck->ChkDate($startdate, "受注伝票納期(開始)"); }
 			if(isset($enddate)) { $clsParamCheck->ChkDate($enddate, "受注伝票納期(終了)"); }
-			if(isset($sstartdate)) { $clsParamCheck->ChkDate($startdate, "S版伝票納期(開始)"); }
-			if(isset($senddate)) { $clsParamCheck->ChkDate($enddate, "S版伝票納期(終了)"); }
+			if(isset($sstartdate)) { $clsParamCheck->ChkDate($sstartdate, "S版伝票納期(開始)"); }
+			if(isset($senddate)) { $clsParamCheck->ChkDate($senddate, "S版伝票納期(終了)"); }
 			if(isset($outsourcenm)) { $clsParamCheck->ChkStr($outsourcenm, "業者名"); }
+			if(isset($connectcd)) { $clsParamCheck->ChkNumeric($connectcd, "自社取引担当者コード"); }
 			$arrErr = $clsParamCheck->GetErrMsg();
+			$print = "";
 
 			if(!$blnErr || count($arrErr) > 0)
 			{
@@ -298,12 +308,9 @@ class PrintcsvController extends Zend_Controller_Action
 			}
 			else
 			{
-				//セッション情報取得
-				$session = $clsCommon->GetSession();
-
 				//パラメータ生成
-				$arrPram = array("kcd" => $session->kcd, "startdate" => $startdate, "enddate" => $enddate,
-								 "sstartdate" => $sstartdate, "senddate" => $senddate, "outsourcenm" => $outsourcenm);
+				$arrPram = array("kcd" => $session->kcd, "startdate" => $startdate, "enddate" => $enddate, "sstartdate" => $sstartdate,
+								 "senddate" => $senddate, "outsourcenm" => $outsourcenm, "connectcd" => $connectcd);
 
 				//S版管理表情報検索
 				$blnRet = $clsSqlSEditionList->SelectSEditionList($clsComConst::DB_KIKAN , $arrPram);
@@ -318,13 +325,41 @@ class PrintcsvController extends Zend_Controller_Action
 				else { $this->view->ErrMsg = $clsComConst::ERR_MSG_CSV; }
 			}
 		}
+		else
+		{
+			//パラメータチェック
+			if(isset($connectcd)) { $clsParamCheck->ChkNumeric($connectcd, "自社取引担当者コード"); }
+
+			if(count($arrErr) > 0)
+			{
+				foreach($arrErr as $value) { $msg .= $value  ."</br>" ; }
+				$this->view->ErrMsg = $msg;
+			}
+			else
+			{
+				if(isset($connectcd))
+				{
+					//自社取引担当者名取得
+					$clsSqlMstShain = new SqlMstShain();
+					$arrPram = array("kcd" => $session->kcd, "cd" => $connectcd);
+					$blnRet = $clsSqlMstShain->SelectMstShain($clsComConst::DB_KIKAN , $arrPram);
+					if($blnRet) { $connectnm = $clsSqlMstShain->GetShainName(); }
+					if(!isset($connectnm) || empty($connectnm)) { $connectcd = ""; }
+				}
+				else { $connectnm = ""; }
+			}
+		}
 
 		//設定処理
+		$this->view->cdialog_employee_url = $clsComConst::CDIALOG_EMPLOYEE_URL;
+		$this->view->code_connect_employee = $clsComConst::CODE_CONNECT_EMPLOYEE;
 		$this->view->StartDate = $clsCommon->ConverDisp($startdate);
 		$this->view->EndDate = $clsCommon->ConverDisp($enddate);
 		$this->view->SStartDate = $clsCommon->ConverDisp($sstartdate);
 		$this->view->SEndDate = $clsCommon->ConverDisp($senddate);
 		$this->view->OutSourceName = $clsCommon->ConverDisp($outsourcenm);
+		$this->view->ConnectCd = $clsCommon->ConverDisp($connectcd);
+		$this->view->ConnectName = $clsCommon->ConverDisp($connectnm);
 		$this->view->Token = $clsCommon->ConverDisp($token);
 		$this->view->List = $clsCommon->GetMenuList();
 		$this->view->SubList = $clsCommon->GetSubMenuList();
@@ -374,6 +409,7 @@ class PrintcsvController extends Zend_Controller_Action
 			if(isset($startdate)) { $clsParamCheck->ChkDate($startdate, "報告日(開始)"); }
 			if(isset($enddate)) { $clsParamCheck->ChkDate($enddate, "報告日(終了)"); }
 			$arrErr = $clsParamCheck->GetErrMsg();
+			$print = "";
 
 			if(count($arrErr) > 0)
 			{
@@ -468,103 +504,7 @@ class PrintcsvController extends Zend_Controller_Action
 			if(isset($sstartdate) && !empty($startdate)) { $clsParamCheck->ChkDate($sstartdate, "精算日(開始)"); }
 			if(isset($senddate) && !empty($startdate)) { $clsParamCheck->ChkDate($senddate, "精算日(終了)"); }
 			$arrErr = $clsParamCheck->GetErrMsg();
-
-			if(count($arrErr) > 0)
-			{
-				foreach($arrErr as $value) { $msg .= $value  ."</br>" ; }
-				$this->view->ErrMsg = $msg;
-			}
-			else
-			{
-				//セッション情報取得
-				$session = $clsCommon->GetSession();
-
-				//パラメータ生成
-				$arrPram = array("kcd" => $session->kcd, "startdate" => $startdate, "enddate" => $enddate, "sstartdate" => $sstartdate, "senddate" => $senddate);
-
-				switch($type)
-				{
-					case 1:
-						$csvname = "ぱどPO精算状況出力(請求全体)";
-						$blnRet = $clsSqlPointAdjustedSituation->SelectPAdjustedSituationDemand($clsComConst::DB_KIKAN , $arrPram);
-						break;
-					case 2:
-						$csvname = "ぱどPO精算状況出力(ポイント)";
-						$blnRet = $clsSqlPointAdjustedSituation->SelectPAdjustedSituationPoint($clsComConst::DB_KIKAN , $arrPram);
-						break;
-					default:
-						throw new Exception("種別が不正です。", $clsComConst::ERR_CODE_400);
-						break;
-				}
-
-				if($blnRet) { $arrRet = $clsSqlPointAdjustedSituation->GetData(); }
-
-				if(count($arrRet) > 0)
-				{ 
-					//CSV出力処理
-					$clsCommon->SetCsv($csvname, $arrRet, "ポイント対象年月, 請求伝票番号, 請求先コード, 請求先名, 店舗ID, 発行ポイント料, 利用ポイント料, 消込額, 残高, 最新消込日, 最新入金番号, 請求年月以降精算, 入金種別CD, 入金種別, 入金種別=売訂");
-					exit;
-				}
-				else { $this->view->ErrMsg = $clsComConst::ERR_MSG_CSV; }
-			}
-		}
-
-		//設定処理
-		$this->view->Type = $clsCommon->ConverDisp($type);
-		$this->view->StartDate = $clsCommon->ConverDisp($startdate);
-		$this->view->EndDate = $clsCommon->ConverDisp($enddate);
-		$this->view->SStartDate = $clsCommon->ConverDisp($sstartdate);
-		$this->view->SEndDate = $clsCommon->ConverDisp($senddate);
-		$this->view->Token = $clsCommon->ConverDisp($token);
-		$this->view->List = $clsCommon->GetMenuList();
-		$this->view->SubList = $clsCommon->GetSubMenuList();
-    }
-
-	/**
-	* ぱどPO精算状況出力検索(旧システム)
-	* 
-	* @param
-	* @return 
-	*/
-    public function oldpointadjustedsituationAction()
-    {
-		//ファイル読み込み
-		require_once dirname(__FILE__) . "/../models/SqlPointAdjustedSituation.php";
-
-		//初期処理
-		$clsCommon = new Common();
-		$clsComConst = new ComConst();
-		$clsParamCheck = new ParamCheck();
-		$clsSqlPointAdjustedSituation = new SqlPointAdjustedSituation();
-		$arrErr = array();
-		$arrPram = array();
-		$csvname = "";
-
-		//パラメータ設定
-		$type = $clsCommon->SetParam($this->getRequest(), "type");					//種別
-		$startdate = $clsCommon->SetParam($this->getRequest(), "startdate");		//納期(開始)
-		$enddate = $clsCommon->SetParam($this->getRequest(), "enddate");			//納期(終了)
-		$sstartdate = $clsCommon->SetParam($this->getRequest(), "sstartdate");		//精算日(開始)
-		$senddate = $clsCommon->SetParam($this->getRequest(), "senddate");			//精算日(終了)
-		$print = $clsCommon->SetParam($this->getRequest(), "print");				//出力フラグ
-		$token = $clsCommon->SetParam($this->getRequest(), "token");
-		if(!isset($type)) { $type = 1; }
-
-		//アクセスチェック
-		if(!$clsCommon->ChkAccess($token, '', '', $clsComConst::PGID_PRINTCSV_OLD_POINT_ADJUSTEDSITUATION))
-		{ throw new Exception("", $clsComConst::ERR_CODE_403); }
-
-		//CSV出力ボタン押下時
-		if($print == 1)
-		{
-			//パラメータチェック
-			$clsParamCheck->ChkMust($type, "種別");
-			if(isset($type)) { $clsParamCheck->ChkNumeric($type, "種別"); }
-			if(isset($startdate) && !empty($startdate)) { $clsParamCheck->ChkMonth($startdate, "納期(開始)"); }
-			if(isset($enddate) && !empty($startdate)) { $clsParamCheck->ChkMonth($enddate, "納期(終了)"); }
-			if(isset($sstartdate) && !empty($startdate)) { $clsParamCheck->ChkDate($sstartdate, "精算日(開始)"); }
-			if(isset($senddate) && !empty($startdate)) { $clsParamCheck->ChkDate($senddate, "精算日(終了)"); }
-			$arrErr = $clsParamCheck->GetErrMsg();
+			$print = "";
 
 			if(count($arrErr) > 0)
 			{
@@ -644,7 +584,7 @@ class PrintcsvController extends Zend_Controller_Action
 		if(!isset($type)) { $type = 1; }
 
 		//アクセスチェック
-		if(!$clsCommon->ChkAccess($token, '', '', $clsComConst::PGID_PRINTCSV_POINT_ADJUSTEDSITUATION))
+		if(!$clsCommon->ChkAccess($token, '', '', $clsComConst::PGID_PRINTCSV_ADVANCE_ADJUSTED_SITUATION))
 		{ throw new Exception("", $clsComConst::ERR_CODE_403); }
 
 		//CSV出力ボタン押下時
@@ -654,6 +594,7 @@ class PrintcsvController extends Zend_Controller_Action
 			$clsParamCheck->ChkMust($startdate, "基準売上日");
 			if(isset($startdate) && !empty($startdate)) { $clsParamCheck->ChkDate($startdate, "基準売上日"); }
 			$arrErr = $clsParamCheck->GetErrMsg();
+			$print = "";
 
 			if(count($arrErr) > 0)
 			{
@@ -662,8 +603,11 @@ class PrintcsvController extends Zend_Controller_Action
 			}
 			else
 			{
+				//セッション情報取得
+				$session = $clsCommon->GetSession();
+
 				//パラメータ生成
-				$arrPram = array("startdate" => $startdate);
+				$arrPram = array("kcd" => $session->kcd, "startdate" => $startdate);
 
 				//前受精算状況出力検索
 				$blnRet = $clsSqlAdvanceAdjustedSituation->SelectAdvanceAdjustedSituation($clsComConst::DB_KIKAN , $arrPram);

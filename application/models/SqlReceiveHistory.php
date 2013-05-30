@@ -30,8 +30,8 @@ class SqlReceiveHistory
 	 * 受注履歴検索
 	 * 
 	 * @param  $db        データベース
-	 * @param  $arrParam  パラメータ配列(kcd:会社コード, contractcd:契約主コード, claimantcd:請求先コード,
-	 *                                   advertisercd:広告主コード, connectcd:自社取引担当者コード, claimcd:自社請求担当者コード,
+	 * @param  $arrParam  パラメータ配列(kcd:会社コード, contractcd:契約主コード, claimantcd:請求先コード, advertisercd:広告主コード,
+	 *                                   salescd:売上担当者, connectcd:自社取引担当者コード, claimcd:自社請求担当者コード,
 	 *                                   reportcd:掲載版コード, dstartdate:納期(開始),denddate:納期(終了), bclasscd:大分類コード,
 	 *                                   mclasscd:中分類コード, kindcd:種別コード, advertisingnm:広告名)
 	 * @return ture:成功、false:失敗
@@ -63,7 +63,7 @@ class SqlReceiveHistory
 			$sql .= "       '(' + B.TOKUISAKI_SNO + ');' + K.TORIHIKISAKI_NM AS contract";
 			$sql .= "      ,F.KEISAIHAN_NM + ';' + dbo.PADO_MK_AREA_CD_STR(A.KAISHA_CD, A.DENPYO_NO, C.MEISAI_NO, NULL, G.HINMOKU_TYPE_CD) AS report";
 			$sql .= "      ,(CASE ISNULL(J.KEISAIGOU_NO,'') ";
-			$sql .= "          WHEN '' THEN CONVERT(char(10), C.NOUKI_YMD,111) ";
+			$sql .= "          WHEN '' THEN CONVERT(char(10), C.NOUKI_YMD,111) + ';' ";
 			$sql .= "          ELSE CONVERT(char(10), C.NOUKI_YMD,111)  + ';' + CONVERT(varchar(12), J.KEISAIGOU_NO) + '号'";
 			$sql .= "        END) AS reportno ";
 			$sql .= "      ,(CASE ISNULL(I.SIZE_CD,'') ";
@@ -74,7 +74,11 @@ class SqlReceiveHistory
 			$sql .= "      ,REPLACE(CONVERT(varchar, CONVERT(MONEY,D.BAIKA), 1), '.00', '') + ';' + REPLACE(CONVERT(varchar, CONVERT(MONEY,D.SEISAKU_KINGAKU), 1), '.00', '') AS rprice";
 			$sql .= "      ,REPLACE(CONVERT(varchar, CONVERT(MONEY,C.SHOUKEI), 1), '.00', '') + ';' +  REPLACE(CONVERT(varchar, CONVERT(MONEY,C.TAX), 1), '.00', '') AS pprice";
 			$sql .= "      ,REPLACE(CONVERT(varchar, CONVERT(MONEY, C.SHOUKEI + C.TAX), 1), '.00', '') + ';' + REPLACE(CONVERT(varchar, CONVERT(MONEY, C.SHOUKEI - (C.GENKA + C.GENKA_SONOTA)), 1), '.00', '') AS price";
-			$sql .= "      ,'(' + B.TANTO_SHA_NO + ');' +  H.SHAIN_NM AS charge";
+			$sql .= "      ,'(' + O.DISP_SMRY_BUSHO_CD + ') ' +  O.BUSHO_NM + ';(' + B.TANTO_SHA_NO + ') ' +  H.SHAIN_NM AS charge";
+			$sql .= "      ,(CASE ISNULL(L.EIGYO_SHAIN_CD,'') ";
+			$sql .= "          WHEN '' THEN '' ";
+			$sql .= "          ELSE '(' + N.DISP_SMRY_BUSHO_CD + ') ' +  N.BUSHO_NM + ';(' + L.EIGYO_SHAIN_CD + ') ' +  M.SHAIN_NM ";
+			$sql .= "        END) AS sales ";
 			$sql .= "      ,CONVERT(char(10), E.KAISHU_YOTEI_YMD,111) AS receivedate";
 
 			//【広告】伝票ヘッダ
@@ -131,11 +135,17 @@ class SqlReceiveHistory
 			$sql .= "   AND G2.KAISHA_CD = '999' ";
 			$sql .= "   AND G2.HINMOKU_TYPE_CD = 3 ";
 
-			//社員マスタ
+			//社員マスタ(受注担当者)
 			$sql .= " INNER JOIN BT_VIEW_SHAIN AS H WITH(NOLOCK) ";
 			$sql .= "    ON B.KAISHA_CD = H.KAISHA_CD ";
 			$sql .= "   AND B.TANTO_SHA_NO = H.SHAIN_CD ";
 			$sql .= "   AND ISNULL(H.DEL_FLG, 0) = 0 AND ISNULL(H.MUKOU_FLG, 0) = 0 ";
+
+			//部署マスタ(受注担当者)
+			$sql .= " INNER JOIN  BT_VIEW_BUSHO AS O WITH(NOLOCK) ";
+			$sql .= "    ON B.KAISHA_CD = O.KAISHA_CD ";
+			$sql .= "   AND B.TANTO_BUSHO_NO = O.BUSHO_CD ";
+			$sql .= "   AND ISNULL(O.DEL_FLG, 0) = 0 ";
 
 			//サイズマスタ
 			$sql .= "  LEFT JOIN AD_VIEW_MST_SIZE AS I WITH(NOLOCK) ";
@@ -156,6 +166,25 @@ class SqlReceiveHistory
 			$sql .= "    ON B.KAISHA_CD = K.KAISHA_CD ";
 			$sql .= "   AND B.TOKUISAKI_SNO = K.TORIHIKISAKI_CD ";
 			$sql .= "   AND ISNULL(K.DEL_FLG, 0) = 0 AND ISNULL(K.MUKOU_FLG, 0) = 0 ";
+
+			//売上
+			$sql .= " LEFT JOIN DR_TBL_URIAGE AS L WITH(NOLOCK) ";
+			$sql .= "    ON C.KAISHA_CD = L.KAISHA_CD ";
+			$sql .= "   AND C.DENPYO_NO = L.DENPYO_NO ";
+			$sql .= "   AND C.MEISAI_NO = L.MEISAI_NO ";
+			$sql .= "   AND ISNULL(L.DEL_FLG, 0) = 0  AND ISNULL(L.TORIKESI_FLG, 0) = 0 ";
+
+			//社員マスタ(売上担当者)
+			$sql .= " LEFT JOIN BT_VIEW_SHAIN AS M WITH(NOLOCK) ";
+			$sql .= "    ON L.KAISHA_CD = M.KAISHA_CD ";
+			$sql .= "   AND L.EIGYO_SHAIN_CD = M.SHAIN_CD ";
+			$sql .= "   AND ISNULL(M.DEL_FLG, 0) = 0 AND ISNULL(M.MUKOU_FLG, 0) = 0 ";
+
+			//部署マスタ(売上担当者)
+			$sql .= " LEFT JOIN  BT_VIEW_BUSHO AS N WITH(NOLOCK) ";
+			$sql .= "    ON L.KAISHA_CD = N.KAISHA_CD ";
+			$sql .= "   AND L.EIGYOU_BUSHO_CD = N.BUSHO_CD ";
+			$sql .= "   AND ISNULL(N.DEL_FLG, 0) = 0 ";
 
 			$sql .= " WHERE ISNULL(A.DEL_FLG, 0) = 0";
 			$sql .= "   AND A.KAISHA_CD = '" . $arrParam["kcd"] . "'";
@@ -204,6 +233,11 @@ class SqlReceiveHistory
 			{
 				//種別コード
 				$sql .= "   AND C.BUNRUI_CD_1 = '" . $arrParam["kindcd"] . "'";
+			}
+			if(isset($arrParam["salescd"]) && !empty($arrParam["salescd"]))
+			{
+				//売上担当者コード
+				$sql .= "   AND L.EIGYO_SHAIN_CD = '" . $arrParam["salescd"] . "'";
 			}
 			if(isset($arrParam["advertisingnm"]) && !empty($arrParam["advertisingnm"]))
 			{
