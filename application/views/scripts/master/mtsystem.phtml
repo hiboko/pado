@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
+<meta name="keywords" content="ぱど基幹サブシステム,マスターメンテ,システムマスタ情報検索" />
+<meta name="description" content="ぱど基幹サブシステム システムマスタ情報検索" />
+<link rel="stylesheet" href="/html/css/common.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/style.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/jquery-ui-1.10.0.custom.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/ui.jqgrid.css" type="text/css" />
+<script type="text/javascript" src="/html/js/jquery.js"></script>
+<script type="text/javascript" src="/html/js/jquery-ui-1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="/html/js/jquery.jqGrid.min.js"></script>
+<script type="text/javascript" src="/html/js/i18n/grid.locale-ja.js"></script>
+<script type="text/javascript" src="/html/js/i18n/jquery.ui.datepicker-ja.js"></script>
+<script type="text/javascript" src="/html/js/common.js"></script>
+<script type="text/javascript" src="/html/js/blockUI.js"></script>
+
+<script language=javascript>
+
+$(function()
+{
+	var grid = JSON.stringify(<?= $this->arrdata ?>);
+	document.frmMain.grid.value = grid;
+});
+
+function btnInsert_onclick()
+{
+	var url = "<?= $this->master_system_detail_url ?>type/<?= $this->TypeIns ?>/?token=<?= $this->Token ?>"; 
+	document.frmMain.action = url;
+	document.frmMain.method = "post";
+	document.frmMain.submit();
+	return true;
+}
+
+function onClickSelect()
+{
+	var grid = jQuery("#list");
+	var id = grid.getGridParam("selrow");
+
+	if(id)
+	{
+		var row = grid.getRowData(id);
+		var url = "<?= $this->master_system_detail_url ?>type/<?= $this->TypeUpd ?>/?token=<?= $this->Token ?>"; 
+
+		document.frmMain.gkcd.value = row.kcd;
+		document.frmMain.gentry.value = row.entry;
+		document.frmMain.gsection.value = row.section;
+		document.frmMain.gval.value = row.val;
+		document.frmMain.gbiko.value = row.biko;
+		document.frmMain.action = url;
+		document.frmMain.method = "post";
+		document.frmMain.submit();
+		return true;
+	}
+	else { alert("選択されてません"); }
+}
+
+</script>
+
+<script type="text/javascript">
+
+jQuery(document).ready(function()
+{
+	var arrdata = <?= $this->arrdata ?>;
+
+	$('#list').jqGrid({
+		data     : arrdata,
+		datatype : 'local',
+		colNames : ['会社コード','種別','セクション','項目', '値'],
+		colModel : [
+			{ name : 'kcd' , index : 'kcd', width:20, align:'center'},
+			{ name : 'entry' , index : 'entry', width:30, align:'center'},
+			{ name : 'section' , index : 'section', width:30, align:'center'},
+			{ name : 'biko' , index : 'biko', width:50, align:'center' },
+			{ name : 'val' , index : 'val', hidden:true, width:50, align:'center' }
+		],
+		caption     : 'システム情報',
+		rowTotal    : 1000,
+		gridview    : true,
+		pager       : $("#pager"),
+		rowNum      : 10,
+		rowList     : [10,20,30],
+		sortname    : 'kcd,employeecd',
+		sortorder   : "asc",
+		height      : 235,
+		width       : 600,
+		viewrecords : true,
+		ondblClickRow: function(id){ onClickSelect(); }
+	});
+
+});
+</script>
+
+<title>ぱど基幹サブシステム システムマスタ情報検索</title>
+
+</head>
+<body>
+
+<!-- #top start -->
+<div id="top">
+
+	<!-- #header include -->
+	<? @include("html/include/header.inc"); ?>
+
+	<!-- #header menu include -->
+	<? @include("html/include/headermenu.php"); ?>
+
+	<!-- #contents start -->
+	<div id="contents">
+
+		<!-- #main start -->
+		<div id="main">
+			<h2>システムマスタ情報検索</h2>
+			<p>システムマスタ情報を検索する</p>
+			<p><span class="required"><?= $this->ErrMsg ?></span></p>
+
+			<!-- #frmMain start -->
+			<form name="frmMain" action="mtsystem" method="post">
+				<input type="hidden" id="token" name="token" value="<?= $this->Token ?>">
+				<input type="hidden" name="grid">
+				<input type="hidden" id="serch" name="serch">
+				<input type="hidden" name="gkcd">
+				<input type="hidden" name="gentry">
+				<input type="hidden" name="gsection">
+				<input type="hidden" name="gval">
+				<input type="hidden" name="gbiko">
+
+				<!-- #formArea start -->
+				<div id="formArea">
+					<table>
+						<tr>
+							<th style="width:100px;">会社コード</th>
+							<td>
+								<input type="text" name="kcd" id="txtKaisyaCd" value="<?= $this->KaisyaCd ?>" maxlength="3" style="width:70px;" />
+							</td>
+						</tr>
+					</table>
+					<div id="formBtnArea" class="FormBtnArea">
+						<table width="600">
+							<tr>
+								<td>
+									<input class="button" type="button" name="btnInsert" id="btnInsert" <?= $this->Visible ?> value="新規" onclick="btnInsert_onclick()">
+									<input class="button" type="submit" name="btnSerch" id="btnSerch" value="検索" >
+								</td>
+							</tr>
+						</table>
+					</div>
+					</br>
+				</div>
+				<!-- #formArea end -->
+			</form>
+			<!-- #frmMain end -->
+
+			<br clear="all"/>
+			<div style="margin-left: 10px;">
+				<table id="list"></table>
+				<div id="pager"></div></br>
+			</div>
+			</br>
+		</div>
+		<!-- #main end -->
+
+	</div>
+	<!-- #contents end -->
+
+	<!-- #header include -->
+	<? @include("html/include/footer.inc"); ?>
+
+</div>
+<!-- #top end -->
+
+</body>
+</html>

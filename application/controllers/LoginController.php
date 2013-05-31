@@ -35,12 +35,14 @@ class LoginController extends Zend_Controller_Action
     {
 		//ファイル読み込み
 		require_once dirname(__FILE__) . "/../models/SqlMstShain.php";
+		require_once dirname(__FILE__) . "/../models/SqlMstSyainRoll.php";
 
 		//初期処理
 		$clsCommon = new Common();
 		$clsComConst = new ComConst();
 		$clsParamCheck = new ParamCheck();
 		$clsSqlMstShain = new SqlMstShain();
+		$clsSqlMstSyainRoll = new SqlMstSyainRoll();
 		$arrErr = array();
 		$arrPram = array();
 
@@ -93,12 +95,16 @@ class LoginController extends Zend_Controller_Action
 					if($arrRet[0]["LAST_PWD_CHG_DATE"] <= $clsComConst::ERR_PWD_LIMIT_DAY)
 					{
 						//パラメータ生成
-						$arrPram = array("kcd" => $arrRet[0]["KAISHA_CD"], "id" => $arrRet[0]["SHAIN_CD"]);
+						$arrPram = array("kcd" => $arrRet[0]["KAISHA_CD"], "cd" => $arrRet[0]["SHAIN_CD"]);
 
-						//ロール情報検索
-						$clsSqlMstShain = new SqlMstShain();
-						$blnRet = $clsSqlMstShain->SelectMstSyainRoll($clsComConst::DB_KIKAN_SUB , $arrPram);
-						if($blnRet) { $arrMenu = $clsSqlMstShain->GetMenuID(); }
+						//表示メニュー情報検索
+						$blnRet = $clsSqlMstSyainRoll->SelectMenuId($clsComConst::DB_KIKAN_SUB , $arrPram);
+						if($blnRet) { $arrMenu = $clsSqlMstSyainRoll->GetMenuID(); }
+
+						//社員権限情報検索
+						$clsSqlMstSyainRoll = new SqlMstSyainRoll();
+						$blnRet = $clsSqlMstSyainRoll->SelectMstSyainRoll($clsComConst::DB_KIKAN_SUB , $arrPram);
+						if($blnRet) { $arrRoll = $clsSqlMstSyainRoll->GetData(); }
 
 						//セッション情報設定
 						Zend_Session::start();
@@ -106,6 +112,7 @@ class LoginController extends Zend_Controller_Action
 						$session->kcd = $arrRet[0]["KAISHA_CD"];
 						$session->scd = $arrRet[0]["SHAIN_CD"];
 						$session->snm = $arrRet[0]["SHAIN_NM"];
+						$session->roll = $arrRoll[0]["roleid"];
 						$session->menu = $arrMenu;
 						$session->token = md5(uniqid(mt_rand(),true));
 

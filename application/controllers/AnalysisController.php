@@ -88,7 +88,7 @@ class AnalysisController extends Zend_Controller_Action
 			if(isset($elements[0]) && !empty($elements[0])) { $fromymd = $elements[0]; }
 			if(isset($elements[1]) && !empty($elements[1])) { $toymd = $elements[1]; }
 
-			$arrPram = array("kcd" => $session->kcd, "report" => $report, "fromymd" => $fromymd, "toymd" => $toymd);
+			$arrPram = array("kcd" => $session->kcd, "report" => $report, "fromymd" => $fromymd, "toymd" => $toymd, "scd" => $session->scd, "snm" => $session->snm);
 
 			switch($type)
 			{
@@ -168,7 +168,7 @@ class AnalysisController extends Zend_Controller_Action
 
 		//お知らせ情報検索
 		$arrRet = array();
-		$arrPram = array("kcd" => $session->kcd, "entry" => "BUSUUHYOU", "section" => "MESSAGE");
+		$arrPram = array("kcd" => $session->kcd, "entry" => "'BUSUUHYOU'", "section" => "MESSAGE");
 		$blnRet = $clsSqlMstSystem->SelectSystemMsg($clsComConst::DB_KIKAN_SUB , $arrPram);
 		if($blnRet) { $arrRet = $clsSqlMstSystem->GetData(); }
 		if(isset($arrRet[0]["val"])) { $this->view->Inform = $clsCommon->ConverDisp($arrRet[0]["val"]); }
@@ -268,7 +268,7 @@ class AnalysisController extends Zend_Controller_Action
 			if(count($grid) > 0)
 			{
 				$arrPram = array("kcd" => $session->kcd, "report" => $report, "fromymd" => $fromymd, "toymd" => $toymd,
-				                 "blockcd" => $blockcd, "areacd" => $areacd);
+				                 "blockcd" => $blockcd, "areacd" => $areacd, "scd" => $session->scd, "snm" => $session->snm);
 
 				//種別ラジオボタン
 				switch($type)
@@ -333,7 +333,7 @@ class AnalysisController extends Zend_Controller_Action
 
 		//アクセスログ出力処理
 		$backtraces = debug_backtrace();
-		$msg = $backtraces[1]['class'] . "：" . $backtraces[1]['function'] . "：" . "(" . $arrPram["kcd"] . ") " . $arrPram["scd"] . "：" . $arrPram["snm"] . " [BlockStartPrint]";
+		$msg = $backtraces[1]['class'] . "：" . $backtraces[1]['function'] . "：excel：(" . $arrPram["kcd"] . ") " . $arrPram["scd"] . "：" . $arrPram["snm"] . " [BlockStartPrint]";
 		$logFile = $clsComConst::ACCESS_LOG_PATH. '/'. strtr('#DT#.log', array('#DT#'=>date('Ymd')));
 		$logger = new Zend_Log(new Zend_Log_Writer_Stream($logFile));
 		$logger->log($msg, Zend_Log::INFO);
@@ -349,7 +349,7 @@ class AnalysisController extends Zend_Controller_Action
 			{
 				//フッターメッセージ検索
 				$fmsg = "";
-				$arrMstPram = array("kcd" => $arrPram["kcd"], "entry" => "BUSUUHYOU", "section" => "BLOCKHYOFOOTER");
+				$arrMstPram = array("kcd" => $arrPram["kcd"], "entry" => "'BUSUUHYOU'", "section" => "BLOCKHYOFOOTER");
 				$blnRet = $clsSqlMstSystem->SelectSystemMsg($clsComConst::DB_KIKAN_SUB , $arrMstPram);
 				if($blnRet) { $arrRetMsg = $clsSqlMstSystem->GetData(); }
 				if(isset($arrRetMsg[0]["val"])) { $fmsg = $clsCommon->ConverDisp($arrRetMsg[0]["val"]); }
@@ -458,7 +458,7 @@ class AnalysisController extends Zend_Controller_Action
 
 				//アクセスログ出力処理
 				$backtraces = debug_backtrace();
-				$msg = $backtraces[1]['class'] . "：" . $backtraces[1]['function'] . "：" . "(" . $arrPram["kcd"] . ") " . $arrPram["scd"] . "：" . $arrPram["snm"] . " [BlockEndPrint]";
+				$msg = $backtraces[1]['class'] . "：" . $backtraces[1]['function'] . "：excel：(" . $arrPram["kcd"] . ") " . $arrPram["scd"] . "：" . $arrPram["snm"] . " [BlockEndPrint]";
 				$logFile = $clsComConst::ACCESS_LOG_PATH. '/'. strtr('#DT#.log', array('#DT#'=>date('Ymd')));
 				$logger = new Zend_Log(new Zend_Log_Writer_Stream($logFile));
 				$logger->log($msg, Zend_Log::INFO);
@@ -649,7 +649,7 @@ class AnalysisController extends Zend_Controller_Action
 
 		//アクセスログ出力処理
 		$backtraces = debug_backtrace();
-		$msg = $backtraces[1]['class'] . "：" . $backtraces[1]['function'] . "：" . "(" . $arrPram["kcd"] . ") " . $arrPram["scd"] . "：" . $arrPram["snm"] . " [AreaStartPrint]";
+		$msg = $backtraces[1]['class'] . "：" . $backtraces[1]['function'] . "：excel：(" . $arrPram["kcd"] . ") " . $arrPram["scd"] . "：" . $arrPram["snm"] . " [AreaStartPrint]";
 		$logFile = $clsComConst::ACCESS_LOG_PATH. '/'. strtr('#DT#.log', array('#DT#'=>date('Ymd')));
 		$logger = new Zend_Log(new Zend_Log_Writer_Stream($logFile));
 		$logger->log($msg, Zend_Log::INFO);
@@ -665,7 +665,7 @@ class AnalysisController extends Zend_Controller_Action
 			{
 				//フッターメッセージ検索
 				$fmsg = "";
-				$arrMstPram = array("kcd" => $arrPram["kcd"], "entry" => "BUSUUHYOU", "section" => "CHIKUHYOFOOTER");
+				$arrMstPram = array("kcd" => $arrPram["kcd"], "entry" => "'BUSUUHYOU'", "section" => "CHIKUHYOFOOTER");
 				$blnRet = $clsSqlMstSystem->SelectSystemMsg($clsComConst::DB_KIKAN_SUB , $arrMstPram);
 				if($blnRet) { $arrRetMsg = $clsSqlMstSystem->GetData(); }
 				if(isset($arrRetMsg[0]["val"])) { $fmsg = $clsCommon->ConverDisp($arrRetMsg[0]["val"]); }
@@ -775,7 +775,7 @@ class AnalysisController extends Zend_Controller_Action
 
 				//アクセスログ出力処理
 				$backtraces = debug_backtrace();
-				$msg = $backtraces[1]['class'] . "：" . $backtraces[1]['function'] . "：" . "(" . $arrPram["kcd"] . ") " . $arrPram["scd"] . "：" . $arrPram["snm"] . " [AreaEndPrint]";
+				$msg = $backtraces[1]['class'] . "：" . $backtraces[1]['function'] . "：excel：(" . $arrPram["kcd"] . ") " . $arrPram["scd"] . "：" . $arrPram["snm"] . " [AreaEndPrint]";
 				$logFile = $clsComConst::ACCESS_LOG_PATH. '/'. strtr('#DT#.log', array('#DT#'=>date('Ymd')));
 				$logger = new Zend_Log(new Zend_Log_Writer_Stream($logFile));
 				$logger->log($msg, Zend_Log::INFO);
@@ -1048,7 +1048,7 @@ class AnalysisController extends Zend_Controller_Action
 		if($_POST['btnSerch'])
 		{
 			//アクセスログ出力処理
-			$clsCommon->AccessLog($session);
+			$clsCommon->AccessLog($session, "serch");
 
 			//パラメータチェック
 			if(isset($contractcd)) { $clsParamCheck->ChkNumeric($contractcd, "契約主コード"); }
@@ -1099,6 +1099,9 @@ class AnalysisController extends Zend_Controller_Action
 		{
 			if(count($grid) > 0)
 			{
+				//アクセスログ出力処理
+				$clsCommon->AccessLog($session, "csv");
+
 				//CSV出力処理
 				$clsCommon->SetCsv("受注履歴", $grid, "契約主コード, 契約主名, 掲載版, 掲載エリア, 掲載日, 掲載号, 商品名, サイズ, 受注番号, 売価, 制作費, 小計, 消費税, 総額, 粗利, 受注担当部署, 受注担当者, 売上担当部署, 売上担当者, 入金予定日");
 				exit();

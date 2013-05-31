@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
+<meta name="keywords" content="ぱど基幹サブシステム,マスターメンテ,システムマスタ情報詳細登録" />
+<meta name="description" content="ぱど基幹サブシステム システムマスタ情報詳細登録" />
+<link rel="stylesheet" href="/html/css/common.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/style.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/jquery-ui-1.10.0.custom.css" type="text/css" />
+<link rel="stylesheet" href="/html/css/ui.jqgrid.css" type="text/css" />
+<script type="text/javascript" src="/html/js/jquery.js"></script>
+<script type="text/javascript" src="/html/js/jquery-ui-1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="/html/js/jquery.jqGrid.min.js"></script>
+<script type="text/javascript" src="/html/js/i18n/grid.locale-ja.js"></script>
+<script type="text/javascript" src="/html/js/i18n/jquery.ui.datepicker-ja.js"></script>
+<script type="text/javascript" src="/html/js/common.js"></script>
+<script type="text/javascript" src="/html/js/blockUI.js"></script>
+
+<script language=javascript>
+
+function btnUpdate_onclick($type)
+{
+	var msg = "登録";
+	if ($type == 1) { msg = "登録"; }
+	else if ($type == 2) { msg = "更新"; }
+	else if ($type == 3) { msg = "削除"; }
+
+	if(window.confirm(msg + 'します。よろしいですか？'))
+	{
+		document.frmMain.update.value = $type;
+		document.frmMain.submit();
+	}
+}
+
+function btnReturn_onclick()
+{
+	var url = "<?= $this->master_system_url ?>kcd/<?= $this->PKaisyaCd ?>/serch/1/?token=<?= $this->Token ?>"; 
+	document.frmMain.action = url;
+	document.frmMain.method = "post";
+	document.frmMain.submit();
+	return true;
+}
+
+</script>
+
+<title>ぱど基幹サブシステム システムマスタ情報登録</title>
+
+</head>
+<body>
+
+<!-- #top start -->
+<div id="top">
+
+	<!-- #header include -->
+	<? @include("html/include/header.inc"); ?>
+
+	<!-- #header menu include -->
+	<? @include("html/include/headermenu.php"); ?>
+
+	<!-- #contents start -->
+	<div id="contents">
+
+		<!-- #main start -->
+		<div id="main">
+			<h2>システムマスタ情報登録</h2>
+			<p>システムマスタ情報を登録・更新・削除する</p>
+			<p><span class="required"><?= $this->ErrMsg ?></span></p>
+
+			<!-- #frmMain start -->
+			<form name="frmMain" action="mtsystem" method="post">
+				<input type="hidden" id="token" name="token" value="<?= $this->Token ?>">
+				<input type="hidden" name="type" value="<?= $this->Type ?>">
+				<input type="hidden" name="update" value="<?= $this->Update ?>">
+				<input type="hidden" name="kcd" value="<?= $this->PKaisyaCd ?>">
+				<input type="hidden" name="gentry">
+				<input type="hidden" name="gsection">
+
+				<!-- #formArea start -->
+				<div id="formArea">
+					<table>
+						<tr>
+							<th style="width:100px;">会社コード<span class="required">(必須)</span></th>
+							<td colspan="3">
+								<input type="text" name="gkcd" id="txtKaisyaCd" <?= $this->Readonly ?> value="<?= $this->KaisyaCd ?>" maxlength="3" style="width:70px;" />
+							</td>
+						</tr>
+						<tr>
+							<th>エントリー<span class="required">(必須)</span></th>
+							<td>
+								<input type="text" name="gentry" id="txtEntry" <?= $this->Readonly ?> value="<?= $this->Entry ?>" maxlength="30" style="width:185px;" />
+							</td>
+							<th>セクション<span class="required">(必須)</span></th>
+							<td>
+								<input type="text" name="gsection" id="txtSection" <?= $this->Readonly ?> value="<?= $this->Section ?>" maxlength="30" style="width:185px;" />
+							</td>
+						</tr>
+						<tr>
+							<th>備考<span class="required">(必須)</span></th>
+							<td colspan="3">
+								<input type="text" name="gbiko" id="txtBiko" <?= $this->Readonly ?> value="<?= $this->Biko ?>" maxlength="250" style="width:500px;" />
+							</td>
+						</tr>
+						<tr>
+							<th>値<span class="required">(必須)</span></th>
+							<td colspan="4">
+								<textarea cols="77" name="gval" id="txtValue" style="width:500px;height:100px;"><?= $this->Value ?></textarea>
+							</td>
+						</tr>
+					</table>
+					<div id="formBtnArea" class="FormBtnArea">
+						<table width="630">
+							<tr>
+								<td>
+									<input class="button" type="button" name="btnInsert" id="btnInsert" <?= $this->InsHidden ?> value="登録" onclick="btnUpdate_onclick(1)" >
+									<input class="button" type="button" name="btnUpdate" id="btnUpdate" <?= $this->UpdHidden ?> value="更新" onclick="btnUpdate_onclick(2)" >
+									<input class="button" type="button" name="btnDelete" id="btnDelete" <?= $this->DelHidden ?> value="削除" onclick="btnUpdate_onclick(3)" >
+									<input class="button" type="button" name="btnReturn" id="btnReturn" value="戻る" onclick="btnReturn_onclick()" >
+								</td>
+							</tr>
+						</table>
+					</div>
+					</br>
+				</div>
+				<!-- #formArea end -->
+			</form>
+			<!-- #frmMain end -->
+
+		</div>
+		<!-- #main end -->
+
+	</div>
+	<!-- #contents end -->
+
+	<!-- #header include -->
+	<? @include("html/include/footer.inc"); ?>
+
+</div>
+<!-- #top end -->
+
+</body>
+</html>

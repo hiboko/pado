@@ -14,8 +14,9 @@
         <controllerFile controllerName="Error"/>
         <controllerFile controllerName="Master">
           <actionMethod actionName="index"/>
-          <actionMethod actionName="company"/>
-        </controllerFile>
+          <actionMethod actionName="mtsystem"/>
+          <actionMethod actionName="mtsystemdetail"/>
+       </controllerFile>
         <controllerFile controllerName="Analysis">
           <actionMethod actionName="index"/>
           <actionMethod actionName="circulation"/>
@@ -56,35 +57,21 @@
           </viewControllerScriptsDirectory>
           <viewControllerScriptsDirectory forControllerName="Master">
             <viewScriptFile forActionName="index"/>
-          </viewControllerScriptsDirectory>
-          <viewControllerScriptsDirectory forControllerName="Master">
-            <viewScriptFile forActionName="company"/>
+            <viewScriptFile forActionName="mtsystem"/>
           </viewControllerScriptsDirectory>
           <viewControllerScriptsDirectory forControllerName="Analysis">
             <viewScriptFile forActionName="index"/>
-          </viewControllerScriptsDirectory>
-          <viewControllerScriptsDirectory forControllerName="Analysis">
             <viewScriptFile forActionName="circulation"/>
-          </viewControllerScriptsDirectory>
-          <viewControllerScriptsDirectory forControllerName="Analysis">
             <viewScriptFile forActionName="circulationdetail"/>
+            <viewScriptFile forActionName="receivehistory"/>
           </viewControllerScriptsDirectory>
           <viewControllerScriptsDirectory forControllerName="Login">
             <viewScriptFile forActionName="index"/>
           </viewControllerScriptsDirectory>
-          <viewControllerScriptsDirectory forControllerName="Analysis">
-            <viewScriptFile forActionName="receivehistory"/>
-          </viewControllerScriptsDirectory>
           <viewControllerScriptsDirectory forControllerName="Commondialog">
             <viewScriptFile forActionName="index"/>
-          </viewControllerScriptsDirectory>
-          <viewControllerScriptsDirectory forControllerName="Commondialog">
             <viewScriptFile forActionName="employee"/>
-          </viewControllerScriptsDirectory>
-          <viewControllerScriptsDirectory forControllerName="Commondialog">
             <viewScriptFile forActionName="code"/>
-          </viewControllerScriptsDirectory>
-          <viewControllerScriptsDirectory forControllerName="Commondialog">
             <viewScriptFile forActionName="client"/>
           </viewControllerScriptsDirectory>
           <viewControllerScriptsDirectory forControllerName="Printcsv">

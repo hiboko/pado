@@ -222,6 +222,7 @@ class Common
 		$clsComConst = new ComConst();
 		$listactive = "";
 		$csvactive = "";
+		$mstactive = "";
 
 		switch($menu)
 		{
@@ -238,12 +239,17 @@ class Common
 			case $clsComConst::PGID_PRINTCSV_ADVANCE_ADJUSTED_SITUATION:
 				$csvactive = "active ";
 				break;
+			case $clsComConst::PGID_MASTER_M_TSYSTEM:
+				$mstactive = "active ";
+				break;
 		}
 
 		$list = '<li class="' . $listactive . 'has-sub"><a href="#"><span>分析</span></a><ul>';
 		$csv = '<li class="' . $csvactive . 'has-sub"><a href="#"><span>CSV</span></a><ul>';
+		$mst = '<li class="' . $csvactive . 'has-sub"><a href="#"><span>MASTER</span></a><ul>';
 		$sublist = '<div class="section"><h3>分析</h3>';
 		$subcsv = '<div class="section"><h3>CSV出力</h3>';
+		$submst = '<div class="section"><h3>マスターメンテ</h3>';
 
 		//メニューリスト生成
 		foreach ($session->menu as $val)
@@ -295,6 +301,11 @@ class Common
 					$csv .= '<li><a href="' . $clsComConst::PRINTCSV_ADVANCE_ADJUSTED_SITUATION_URL . '?token=' . $token . '"><span>前受精算状況出力</span></a></li>';
 					$subcsv .= '<li><a href="' . $clsComConst::PRINTCSV_ADVANCE_ADJUSTED_SITUATION_URL . '?token=' . $token . '">前受精算状況出力</a></li>';
 					break;
+				case $clsComConst::PGID_MASTER_M_TSYSTEM:
+					//システムマスタ情報登録
+					$mst .= '<li><a href="' . $clsComConst::MASTER_M_TSYSTEM_URL . '?token=' . $token . '"><span>システムマスタ情報登録</span></a></li>';
+					$submst .= '<li><a href="' . $clsComConst::MASTER_M_TSYSTEM_URL . '?token=' . $token . '">システムマスタ情報登録</a></li>';
+					break;
 			}
 		}
 
@@ -302,9 +313,11 @@ class Common
 		$sublist .= '</div>';
 		$csv .= '</ul></li>';
 		$subcsv .= '</div>';
+		$mst .= '</ul></li>';
+		$submst .= '</div>';
 
-		$this->MenuList = $list . $csv;
-		$this->SubMenuList = $sublist . $subcsv;
+		$this->MenuList = $list . $csv . $mst;
+		$this->SubMenuList = $sublist . $subcsv . $submst;
 
 		return true;
 	}
@@ -324,16 +337,17 @@ class Common
 	 * アクセスログ出力処理
 	 * 
 	 * @param $session  セッション情報
+	 * @param $action   アクション名
 	 * @return true:成功、false:失敗
 	 */
-	public function AccessLog($session)
+	public function AccessLog($session, $action="")
 	{
 		$clsComConst = new ComConst();
 
 		try
 		{
 			$backtraces = debug_backtrace();
-			$msg = $backtraces[1]['class'] . "：" . $backtraces[1]['function'] . "：" . "(" . $session->kcd . ") " . $session->scd . "：" . $session->snm;
+			$msg = $backtraces[1]['class'] . "：" . $backtraces[1]['function'] . "：" . $action . "：(" . $session->kcd . ") " . $session->scd . "：" . $session->snm;
 			$logFile = $clsComConst::ACCESS_LOG_PATH. '/'. strtr('#DT#.log', array('#DT#'=>date('Ymd')));
 			$logger = new Zend_Log(new Zend_Log_Writer_Stream($logFile));
 			$logger->log($msg, Zend_Log::INFO);

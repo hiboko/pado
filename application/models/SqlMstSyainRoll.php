@@ -27,6 +27,19 @@ class SqlMstSyainRoll
 	}
 
 	/**
+	 * 表示メニューID取得
+	 */
+	public function GetMenuID()
+	{
+		foreach ($this->RetData as $arr)
+		{
+		    $ret[] = $arr['MENU_ID'];
+		}
+
+		return $ret;
+	}
+
+	/**
 	 * 権限名取得
 	 */
 	public function GetRoleName()
@@ -39,6 +52,71 @@ class SqlMstSyainRoll
 		}
 
 		return $ret;
+	}
+
+	/**
+	 * 表示メニュー情報検索
+	 * 
+	 * @param  $db        データベース
+	 * @param  $arrParam  パラメータ配列(kcd:会社コード, cd:社員ID)
+	 * @return ture:成功、false:失敗
+	 */
+	public function SelectMenuId($db, $arrParam = array())
+	{
+		require_once dirname(__FILE__) . "/../models/ModelBase.php";
+
+		$clsModelBase = new ModelBase();
+		$clsComConst = new ComConst();
+
+		try
+		{
+			//パラメーターエラー
+			if(!isset($arrParam["kcd"]) || empty($arrParam["kcd"]))
+			{ throw new Exception('SelectMenuId', $clsComConst::ERR_CODE_400); }
+			if(!isset($arrParam["cd"]) || empty($arrParam["cd"]))
+			{ throw new Exception('SelectMenuId', $clsComConst::ERR_CODE_400); }
+
+			//DB接続
+			$blnRet = $clsModelBase->initDb($db);
+
+			//DB接続エラー
+			if(!$blnRet) { throw new Exception('', $clsComConst::ERR_CODE_101); }
+
+			$sql = " SELECT A.MENU_ID ";
+			$sql .= "  FROM M_MROLL AS A WITH(NOLOCK) ";
+			$sql .= " WHERE ISNULL(A.DEL_FLG, 0) = 0 ";
+			$sql .= "   AND A.KAISHA_CD = '" . $arrParam["kcd"] . "' ";
+			$sql .= "   AND A.ROLE_ID = 0";
+			$sql .= " UNION ";
+			$sql .= " SELECT B.MENU_ID ";
+			$sql .= "  FROM M_TSYAIN_ROLL AS A WITH(NOLOCK) ";
+			$sql .= " INNER JOIN M_MROLL AS B WITH(NOLOCK) ";
+			$sql .= "    ON A.KAISHA_CD = B.KAISHA_CD ";
+			$sql .= "   AND A.ROLE_ID = B.ROLE_ID ";
+			$sql .= "   AND ISNULL(B.DEL_FLG, 0) = 0  ";
+			$sql .= " WHERE ISNULL(A.DEL_FLG, 0) = 0 ";
+			$sql .= "   AND A.KAISHA_CD = '" . $arrParam["kcd"] . "' ";
+			$sql .= "   AND A.SHAIN_CD = '" . $arrParam["cd"] . "' ";
+
+			//クエリー実行
+			$blnRet = $clsModelBase->Query($sql);
+
+			//クエリー実行エラー
+			if(!$blnRet) { throw new Exception($sql, $clsComConst::ERR_CODE_102); }
+
+			//データ取得
+			$this->RetData = $clsModelBase->GetData();
+
+			//接続解除
+			$clsModelBase->Close();
+
+		}
+		catch (Exception $e)
+		{
+			throw new Exception($e->getMessage(), $clsComConst::ERR_CODE_500);
+		}
+
+		return true;
 	}
 
 	/**
@@ -89,7 +167,7 @@ class SqlMstSyainRoll
 			if(isset($arrParam["cd"]) && !empty($arrParam["cd"]))
 			{
 				//社員コード
-				$sql .= "   AND A.SHAIN_CD like '%" . $arrParam["cd"] . "%'";
+				$sql .= "   AND A.SHAIN_CD = '" . $arrParam["cd"] . "'";
 			}
 
 			$sql .= " ORDER BY A.KAISHA_CD, A.SHAIN_CD ";

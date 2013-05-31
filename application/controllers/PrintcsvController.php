@@ -75,6 +75,9 @@ class PrintcsvController extends Zend_Controller_Action
 				//セッション情報取得
 				$session = $clsCommon->GetSession();
 
+				//アクセスログ出力処理
+				$clsCommon->AccessLog($session, "csv");
+
 				//パラメータ生成
 				$arrPram = array("kcd" => $session->kcd, "startdate" => $startdate, "enddate" => $enddate);
 
@@ -150,6 +153,9 @@ class PrintcsvController extends Zend_Controller_Action
 				//セッション情報取得
 				$session = $clsCommon->GetSession();
 
+				//アクセスログ出力処理
+				$clsCommon->AccessLog($session, "csv");
+
 				//パラメータ生成
 				$arrPram = array("kcd" => $session->kcd, "sstartdate" => $sstartdate, "nstartdate" => $nstartdate);
 
@@ -222,6 +228,12 @@ class PrintcsvController extends Zend_Controller_Action
 			}
 			else
 			{
+				//セッション情報取得
+				$session = $clsCommon->GetSession();
+
+				//アクセスログ出力処理
+				$clsCommon->AccessLog($session, "csv");
+
 				//パラメータ生成
 				$arrPram = array("startdate" => $startdate, "enddate" => $enddate);
 
@@ -308,6 +320,9 @@ class PrintcsvController extends Zend_Controller_Action
 			}
 			else
 			{
+				//アクセスログ出力処理
+				$clsCommon->AccessLog($session, "csv");
+
 				//パラメータ生成
 				$arrPram = array("kcd" => $session->kcd, "startdate" => $startdate, "enddate" => $enddate, "sstartdate" => $sstartdate,
 								 "senddate" => $senddate, "outsourcenm" => $outsourcenm, "connectcd" => $connectcd);
@@ -418,6 +433,12 @@ class PrintcsvController extends Zend_Controller_Action
 			}
 			else
 			{
+				//セッション情報取得
+				$session = $clsCommon->GetSession();
+
+				//アクセスログ出力処理
+				$clsCommon->AccessLog($session, "csv");
+
 				//パラメータ生成
 				$arrPram = array("startdate" => $startdate, "enddate" => $enddate);
 
@@ -516,6 +537,9 @@ class PrintcsvController extends Zend_Controller_Action
 				//セッション情報取得
 				$session = $clsCommon->GetSession();
 
+				//アクセスログ出力処理
+				$clsCommon->AccessLog($session, "csv");
+
 				//パラメータ生成
 				$arrPram = array("kcd" => $session->kcd, "startdate" => $startdate, "enddate" => $enddate, "sstartdate" => $sstartdate, "senddate" => $senddate);
 
@@ -605,6 +629,9 @@ class PrintcsvController extends Zend_Controller_Action
 			{
 				//セッション情報取得
 				$session = $clsCommon->GetSession();
+
+				//アクセスログ出力処理
+				$clsCommon->AccessLog($session, "csv");
 
 				//パラメータ生成
 				$arrPram = array("kcd" => $session->kcd, "startdate" => $startdate);

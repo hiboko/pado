@@ -48,10 +48,10 @@ class ComConst
 	const PRINTCSV_OLD_POINT_ADJUSTEDSITUATION_URL = "http://kikansubtest.pado.jp:8081/printcsv/oldpointadjustedsituation/";
 	//前受精算状況出力
 	const PRINTCSV_ADVANCE_ADJUSTED_SITUATION_URL = "http://kikansubtest.pado.jp:8081/printcsv/advanceadjustedsituation/";
-	//システム情報検索
-	const ANALYSIS_SYSTEM_DATA_URL = "http://kikansubtest.pado.jp:8081/analysis/sysytemdata/";
-	//システム情報更新・削除
-	const ANALYSIS_SYSTEM_DATA_DETAIL_URL = "http://kikansubtest.pado.jp:8081/analysis/sysytemdatadetail/";
+	//システムマスタ情報検索
+	const MASTER_M_TSYSTEM_URL = "http://kikansubtest.pado.jp:8081/master/mtsystem/";
+	//システムマスタ情報登録
+	const MASTER_M_TSYSTEM_DETAIL_URL = "http://kikansubtest.pado.jp:8081/master/mtsystemdetail/";
 
 	/**********************************************************************************************
 	 * DB
@@ -110,11 +110,11 @@ class ComConst
 	const PGID_PRINTCSV_OLD_POINT_ADJUSTEDSITUATION = 9;
 	//前受精算状況出力
 	const PGID_PRINTCSV_ADVANCE_ADJUSTED_SITUATION = 10;
-	//システム情報検索
-	const PGID_ANALYSIS_SYSTEM_DATA = 11;
-	//システム情報更新・削除
-	const PGID_ANALYSIS_SYSTEM_DATA_DETAIL = 12;
-	
+	//システムマスタ情報検索
+	const PGID_MASTER_M_TSYSTEM = 11;
+	//システムマスタ情報登録
+	const PGID_MASTER_M_TSYSTEM_DETAIL = 12;
+
 	/**********************************************************************************************
 	 * 判定コード
 	 **********************************************************************************************/
@@ -157,6 +157,13 @@ class ComConst
 	//部数表CSV出力コード
 	const CODE_CIRCULATION_CSV = 'ORKM_KEISAIHAN_CD';
 
+	//経理・業務管理出力カテゴリー
+	const AUTH_M_TSYSTEM_GKANRI = "'BUSUUHYOU'";
+	//経理・業務管理
+	const ROLL_M_TSYSTEM_GKANRI = 1;
+	//管理者
+	const ROLL_M_TSYSTEM_ADMIN = 0;
+
 	//ダイアログコード
 	const CODE_DIALOG = 1;
 
@@ -191,6 +198,8 @@ class ComConst
 	const ERR_MSG_PWD = "パスワードの有効期限が過ぎています。新基幹システムよりパスワードの変更を行ってください。";
 	//帳票出力エラー
 	const ERR_MSG_CSV = "出力データがありません。";
+	//登録済みエラー
+	const ERR_MSG_INSERT = "入力したデータはすでに登録済みです。";
 
 	/**********************************************************************************************
 	 * 有効期限
